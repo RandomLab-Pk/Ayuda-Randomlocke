@@ -479,7 +479,7 @@ const IDX = {Atq:1, Def:2, 'At.Esp':3, 'Df.Esp':4, Vel:5};
 const MULT = {
   'choice-band':{1:1.5}, 'choice-specs':{3:1.5}, 'choice-scarf':{5:1.5}, 'assault-vest':{4:1.5},
   'eviolite':{2:1.5, 4:1.5, evo:true},
-  'light-ball':{1:2, 3:2, solo:[25]}, 'thick-club':{1:2, solo:[104,105]},
+  'light-ball':{1:2, 3:2, solo:[25]}, 'thick-club':{1:2, solo:[104,105,10115]},
   'deep-sea-tooth':{3:2, solo:[366]}, 'deep-sea-scale':{4:2, solo:[366]},
 };
 // objetos que cambian de forma además de las megapiedras (identificador de objeto -> forma)
@@ -514,7 +514,7 @@ const JUEGOS = [
 ].map(([n,g,c1,c2,c,max,extra]) => ({n,g,c1,c2,c,max,extra:extra||[]}));
 // Pokémon de portada de cada juego (id de PokeAPI; 100xx = formas)
 const PORTADA = {'Rojo':6,'Azul':9,'Amarillo':25,'Oro':250,'Plata':249,'Cristal':245,'Rubí':383,'Zafiro':382,'Esmeralda':384,'Rojo Fuego':6,'Verde Hoja':3,
-  'Diamante':483,'Perla':484,'Platino':487,'HeartGold':250,'SoulSilver':249,'Negro':644,'Blanco':643,'Negro 2':10022,'Blanco 2':10023,'X':716,'Y':717,
+  'Diamante':483,'Perla':484,'Platino':487,'HeartGold':250,'SoulSilver':249,'Negro':643,'Blanco':644,'Negro 2':10022,'Blanco 2':10023,'X':716,'Y':717,
   'Rubí Omega':10078,'Zafiro Alfa':10077,'Sol':791,'Luna':792,'Ultrasol':10155,'Ultraluna':10156,"Let's Go Pikachu":25,"Let's Go Eevee":133,'Espada':888,'Escudo':889,
   'Diamante Brillante':483,'Perla Reluciente':484,'Leyendas Arceus':493,'Escarlata':1007,'Púrpura':1008,'Leyendas Z-A':718};
 const FORMA_CART = {gb:'gb', gbc:'gb', gba:'gba', ds:'ds', tds:'ds', sw:'sw'};
@@ -540,8 +540,8 @@ function csv(texto) {
 async function bajar(n) { const r = await fetch(BASE + n + '.csv'); if (!r.ok) throw new Error(n); return csv(await r.text()); }
 
 async function cargarDatos() {
-  Object.keys(localStorage).filter(k => /^pk_datos_v\d+$/.test(k) && k !== 'pk_datos_v15').forEach(k => localStorage.removeItem(k));
-  const cache = localStorage.getItem('pk_datos_v15');
+  Object.keys(localStorage).filter(k => /^pk_datos_v\d+$/.test(k) && k !== 'pk_datos_v16').forEach(k => localStorage.removeItem(k));
+  const cache = localStorage.getItem('pk_datos_v16');
   if (cache) { try { return JSON.parse(cache); } catch {} }
   const [sp, mn, mv, itn, it, fl, cat, st, pt, pa, an, pk, spc, igi, tpp, pap, abl, chg] = await Promise.all(['pokemon_species_names','move_names','moves','item_names','items','item_flag_map','item_categories','pokemon_stats','pokemon_types','pokemon_abilities','ability_names','pokemon','pokemon_species','item_game_indices','pokemon_types_past','pokemon_abilities_past','abilities','move_changelog'].map(bajar));
   const nombres = filas => Object.fromEntries(filas.filter(f => f[1]===ES).map(f => [f[0], f[2]]));
@@ -579,7 +579,7 @@ async function cargarDatos() {
     formaDe[f[0]] = +f[2];
     const e = spI[f[2]], nombre = spN[f[2]], resto = f[1].slice(e.length+1);
     formN[f[0]] = resto.includes('mega') ? 'Mega-' + nombre + (resto.split('-').filter(t => t!=='mega').map(t => ' ' + (t.length===1 ? t.toUpperCase() : t)).join(''))
-      : resto.includes('primal') ? nombre + ' Primigenio' : resto.includes('origin') ? nombre + ' Forma Origen' : nombre + ' Forma Suprema';
+      : resto.includes('primal') ? nombre + ' Primigenio' : resto.includes('origin') ? nombre + ' Forma Origen' : +f[2]===888 ? nombre + ' Espada Suprema' : +f[2]===889 ? nombre + ' Escudo Supremo' : nombre + ' Forma Suprema';
   }
 
   // formas regionales (Alola, Galar, Hisui, Paldea) como Pokémon elegibles
@@ -589,13 +589,13 @@ async function cargarDatos() {
     return {id:+f[0], e:+f[2], r:m[2], n:`${spN[f[2]]} de ${DE[m[2]]}${m[3] ? ' (raza ' + RAZA[m[3]] + ')' : ''}`};
   });
   // formas alternativas permanentes con otras estadísticas o tipos: id -> [generación en que aparecen, nombre]
-  const ALT = {10001:[3,'Ataque'],10002:[3,'Defensa'],10003:[3,'Velocidad'],10004:[4,'Planta Arena'],10005:[4,'Planta Basura'],10006:[4,'Forma Cielo'],
+  const ALT = {10001:[3,'Ataque'],10002:[3,'Defensa'],10003:[3,'Velocidad'],10004:[4,'Tronco Arena'],10005:[4,'Tronco Basura'],10006:[4,'Forma Cielo'],
     10008:[4,'Calor'],10009:[4,'Lavado'],10010:[4,'Frío'],10011:[4,'Ventilador'],10012:[4,'Corte'],10019:[5,'Forma Tótem'],10020:[5,'Forma Tótem'],10021:[5,'Forma Tótem'],
     10022:[5,'Negro'],10023:[5,'Blanco'],10025:[6,'Hembra'],10027:[6,'Pequeño'],10028:[6,'Grande'],10029:[6,'Supertamaño'],10030:[6,'Pequeño'],10031:[6,'Grande'],10032:[6,'Supertamaño'],
-    10061:[6,'Flor Eterna'],10086:[6,'Desatado'],10181:[7,'Forma 10%'],10123:[7,'Estilo Animado'],10124:[7,'Estilo Plácido'],10125:[7,'Estilo Apasionado'],
-    10126:[7,'Forma Nocturna'],10152:[7,'Forma Crepuscular'],10147:[7,'Forma Original'],10155:[7,'Melena Crepuscular'],10156:[7,'Alas del Alba'],
-    10177:[8,'Forma de Galar'],10184:[8,'Forma Grave'],10186:[8,'Hembra'],10191:[8,'Forma Brusca'],10193:[8,'Jinete Glacial'],10194:[8,'Jinete Espectral'],
-    10247:[8,'Raya Blanca'],10248:[8,'Hembra'],10249:[8,'Forma Tótem'],10254:[9,'Hembra'],10272:[9,'Luna Sangrienta'],10273:[9,'Máscara Fuente'],10274:[9,'Máscara Horno'],10275:[9,'Máscara Cimiento']};
+    10061:[6,'Flor Eterna'],10086:[6,'Desatado'],10181:[7,'Forma 10%'],10123:[7,'Estilo Animado'],10124:[7,'Estilo Plácido'],10125:[7,'Estilo Refinado'],
+    10126:[7,'Forma Nocturna'],10152:[7,'Forma Crepuscular'],10147:[7,'Color Vetusto'],10155:[7,'Melena Crepuscular'],10156:[7,'Alas del Alba'],
+    10177:[8,'Forma de Galar'],10184:[8,'Forma Grave'],10186:[8,'Hembra'],10191:[8,'Estilo Fluido'],10193:[8,'Jinete Glacial'],10194:[8,'Jinete Espectral'],
+    10247:[8,'Raya Blanca'],10248:[8,'Hembra'],10249:[8,'Forma Tótem'],10254:[9,'Hembra'],10272:[9,'Luna Carmesí'],10273:[9,'Máscara Fuente'],10274:[9,'Máscara Horno'],10275:[9,'Máscara Cimiento']};
   const alternativas = pk.filter(f => ALT[f[0]]).map(f => ({id:+f[0], e:+f[2], g:ALT[f[0]][0], n:`${spN[f[2]]} (${ALT[f[0]][1]})`}));
   const idsReg = new Set([...regionales, ...alternativas].map(p => p.id));
   const quiero = id => +id <= 1025 || idsForma.has(+id) || idsReg.has(+id);
@@ -621,7 +621,7 @@ async function cargarDatos() {
     stats, tipos, hab, abN, abG, tipoPast, habPast, formas, formaDe, formN, preevo,
     items: it.filter(f => (pasivos.has(f[0]) || CATS.has(catN[f[2]]) || EXTRA_OBJ.has(f[1]) || formas[f[0]]!==undefined) && itN[f[0]]).map(f => ({id:+f[0], n:itN[f[0]], s:f[1], g:gMin[f[0]] || 9, k:catN[f[2]]})).sort((a,b) => a.n.localeCompare(b.n,'es')),
   };
-  try { localStorage.setItem('pk_datos_v15', JSON.stringify(d)); } catch {}
+  try { localStorage.setItem('pk_datos_v16', JSON.stringify(d)); } catch {}
   return d;
 }
 
@@ -952,17 +952,18 @@ const pokeImg = id => `${SPR}pokemon/${id}.png`;
 const tag = t => `<span class="tag" style="--c:${TIPOS[t][1]}">${TIPOS[t][0]}</span>`;
 const tiposHTML = id => tiposDe(id).map(tag).join(' ');
 const habDe = m => m.hab ?? habLista(m.id)[0]?.[0];
-const FORMA_JUEGOS = {alola:['Sol','Luna','Ultrasol','Ultraluna',"Let's Go Pikachu","Let's Go Eevee"], galar:['Espada','Escudo'], hisui:['Leyendas Arceus'], paldea:['Escarlata','Púrpura']};
+const FORMA_JUEGOS = {alola:['Sol','Luna','Ultrasol','Ultraluna',"Let's Go Pikachu","Let's Go Eevee",'Espada','Escudo','Escarlata','Púrpura'], galar:['Espada','Escudo','Escarlata','Púrpura'], hisui:['Leyendas Arceus','Escarlata','Púrpura'], paldea:['Escarlata','Púrpura']};
 function enJuego(p) { return p.g ? J.g >= p.g && enJuego({id:p.e}) : p.r ? FORMA_JUEGOS[p.r].includes(J.n) && p.e <= J.max : p.id <= J.max || J.extra.includes(p.id); }
 
 // ---------- datos según la generación del juego (ataques, objetos, habilidades, tipos) ----------
 const VG = {'Rojo':1,'Azul':1,'Amarillo':2,'Oro':3,'Plata':3,'Cristal':4,'Rubí':5,'Zafiro':5,'Esmeralda':6,'Rojo Fuego':7,'Verde Hoja':7,'Diamante':8,'Perla':8,'Platino':9,'HeartGold':10,'SoulSilver':10,
   'Negro':11,'Blanco':11,'Negro 2':14,'Blanco 2':14,'X':15,'Y':15,'Rubí Omega':16,'Zafiro Alfa':16,'Sol':17,'Luna':17,'Ultrasol':18,'Ultraluna':18,"Let's Go Pikachu":19,"Let's Go Eevee":19,
   'Espada':20,'Escudo':20,'Diamante Brillante':23,'Perla Reluciente':23,'Leyendas Arceus':24,'Escarlata':25,'Púrpura':25};   // grupo de versiones de PokéAPI
-const ORAS = ['Rubí Omega','Zafiro Alfa'], SOLO_J = {
-  'mega-stones':['X','Y',...ORAS,'Sol','Luna','Ultrasol','Ultraluna',"Let's Go Pikachu","Let's Go Eevee"], 'z-crystals':['Sol','Luna','Ultrasol','Ultraluna'],
-  'red-orb':ORAS, 'blue-orb':ORAS, 'adamant-crystal':['Leyendas Arceus'], 'lustrous-globe':['Leyendas Arceus'], 'rusted-sword':['Espada','Escudo'], 'rusted-shield':['Espada','Escudo'],
-  'griseous-orb':['Platino','HeartGold','SoulSilver','Diamante Brillante','Perla Reluciente','Leyendas Arceus']};
+const ORAS = ['Rubí Omega','Zafiro Alfa'], ALOLA = ['Sol','Luna','Ultrasol','Ultraluna'], PALDEA = ['Escarlata','Púrpura'], SOLO_J = {
+  'mega-stones':['X','Y',...ORAS,...ALOLA,"Let's Go Pikachu","Let's Go Eevee"], 'z-crystals':ALOLA,
+  'red-orb':[...ORAS,...ALOLA], 'blue-orb':[...ORAS,...ALOLA], 'adamant-crystal':['Leyendas Arceus',...PALDEA], 'lustrous-globe':['Leyendas Arceus',...PALDEA],
+  'rusted-sword':['Espada','Escudo',...PALDEA], 'rusted-shield':['Espada','Escudo',...PALDEA],
+  'griseous-orb':['Platino','HeartGold','SoulSilver','Negro','Blanco','Negro 2','Blanco 2','X','Y',...ORAS,...ALOLA,'Diamante Brillante','Perla Reluciente','Leyendas Arceus',...PALDEA]};
 const FISICOS = new Set([1,2,3,4,5,6,7,8,9]);   // hasta la 3.ª generación la clase del ataque depende del tipo
 let MV = [], MVmap = new Map();
 function prepararJuego() {
@@ -1040,7 +1041,7 @@ function modHTML(ef) {
   if (!ef) return '';
   if (ef.nota) return `<div class="mod nota">${esc(ef.nota)}</div>`;
   const ico = `<img src="${SPR}items/${ef.it.s}.png" onerror="this.style.display='none'"> `;
-  if (ef.forma) return `<div class="mod">${ico}Con ${esc(ef.it.n)} → <b>${esc(ef.nombre)}</b><br>${tiposHTML(ef.forma)}</div>`;
+  if (ef.forma) return `<div class="mod">${ico}Con ${esc(ef.it.n)} → <b>${esc(ef.nombre)}</b>${J.g >= 3 && ef.hab && D.abN[ef.hab] ? ` · Habilidad: <b>${esc(D.abN[ef.hab])}</b>` : ''}<br>${tiposHTML(ef.forma)}</div>`;
   return `<div class="mod">${ico}Con ${esc(ef.it.n)}: <b>${esc(ef.texto)}</b> <small>(sobre la stat final)</small></div>`;
 }
 const colorStat = x => x>=130 ? '#2dd6b0' : x>=100 ? '#6bdf4e' : x>=70 ? '#f6cf19' : x>=50 ? '#f08a31' : '#ee4d52';
@@ -1100,7 +1101,7 @@ function pintarEditor() {
   const t = tiposDe(ed.poke.id);
   const slotsM = ed.moves.map((id,i) => {
     const m = id && move(id);
-    return `<div class="slot ${m?'lleno':''}" data-m="${i}" ${m?'draggable="true"':''} title="${m?'Click o arrástralo a la lista para quitar':'Click y elige en Ataques'}">${m ? `${tag(m.t)} ${esc(m.n)}` : 'Ataque '+(i+1)}</div>`;
+    return `<div class="slot ${m?'lleno':''}" data-m="${i}" ${m?'draggable="true"':''} title="${m?'Clic o arrástralo a la lista para quitar':'Clic y elige en Ataques'}">${m ? `${tag(m.t)} ${esc(m.n)}` : 'Ataque '+(i+1)}</div>`;
   }).join('');
   const it = ed.item && item(ed.item);
   const edita = !!ed.origen, otro = edita && (ed.origen.l==='e' ? 'caja' : 'equipo');
@@ -1118,7 +1119,7 @@ function pintarEditor() {
     <div class="edcuerpo">
       <section><h3>Ataques</h3><div class="slots2">${slotsM}</div>
         <h3 style="margin-top:8px;${J.g < 2 ? 'display:none' : ''}">Objeto equipado</h3>
-        <div class="slot ${it?'lleno':''}" data-i ${J.g < 2 ? 'style="display:none"' : ''} ${it?'draggable="true"':''} title="${it?'Click o arrástralo a la lista para quitar':'Click y elige en Objetos'}">${it ? `<img src="${SPR}items/${it.s}.png" onerror="this.style.display='none'">${esc(it.n)}` : 'Sin objeto'}</div>${megaHTML()}</section>
+        <div class="slot ${it?'lleno':''}" data-i ${J.g < 2 ? 'style="display:none"' : ''} ${it?'draggable="true"':''} title="${it?'Clic o arrástralo a la lista para quitar':'Clic y elige en Objetos'}">${it ? `<img src="${SPR}items/${it.s}.png" onerror="this.style.display='none'">${esc(it.n)}` : 'Sin objeto'}</div>${megaHTML()}</section>
       <section id="edStats">${stats2()}</section>
     </div>
     <div class="acciones">${edita
@@ -1309,7 +1310,7 @@ $('listaMoves').onclick = ev => {
   const id = +c.dataset.id;
   if (ed.moves.includes(id)) return aviso('Ya tiene ese ataque');
   const hueco = ed.moves.indexOf(null);
-  if (hueco < 0) return aviso('Ya tiene 4 ataques: quita uno haciendo click en él');
+  if (hueco < 0) return aviso('Ya tiene 4 ataques: quita uno haciendo clic en él');
   ed.moves[hueco] = id; pintarEditor();
 };
 $('listaItems').onclick = ev => {
@@ -1561,11 +1562,11 @@ $('bCalc').onclick = abrirCalc;
 const SPR_ENT = 'https://play.pokemonshowdown.com/sprites/trainers/';
 // líderes de gimnasio por región: [sprite, nombre, tipo]. La medalla se dibuja con el color de su tipo (no es el arte oficial).
 const LID = {
-  kanto: [['brock','Brock',6],['misty','Misty',11],['ltsurge','Teniente Surge',13],['erika','Erika',12],['koga','Koga',4],['sabrina','Sabrina',14],['blaine','Blaine',10],['giovanni','Giovanni',5]],
+  kanto: [['brock','Brock',6],['misty','Misty',11],['ltsurge','Lt. Surge',13],['erika','Erika',12],['koga','Koga',4],['sabrina','Sabrina',14],['blaine','Blaine',10],['giovanni','Giovanni',5]],
   johto: [['falkner','Pegaso',3],['bugsy','Antón',7],['whitney','Blanca',1],['morty','Morti',8],['chuck','Aníbal',2],['jasmine','Yasmina',9],['pryce','Fredo',15],['clair','Débora',16]],
   hoenn: [['roxanne','Petra',6],['brawly','Marcial',2],['wattson','Erico',13],['flannery','Candela',10],['norman','Norman',1],['winona','Alana',3],['tateandliza-gen3','Vito y Leti',14]],
   sinnoh: [['roark','Roco',6],['gardenia','Gardenia',12],['maylene','Brega',2],['crasherwake','Mananti',11],['fantina','Fantina',8],['byron','Acerón',9],['candice','Inverna',15],['volkner','Lectro',13]],
-  kalos: [['viola','Violeta',7],['grant','Lino',6],['korrina','Korrina',2],['ramos','Amaro',12],['clemont','Lem',13],['valerie','Valerie',18],['olympia','Ástrid',14],['wulfric','Édel',15]],
+  kalos: [['viola','Violeta',7],['grant','Lino',6],['korrina','Corelia',2],['ramos','Amaro',12],['clemont','Lem',13],['valerie','Valeria',18],['olympia','Ástrid',14],['wulfric','Édel',15]],
   paldea: [['katy','Araceli',7],['brassius','Brais',12],['iono','e-Nigma',13],['kofu','Fuco',11],['larry','Laureano',1],['ryme','Lima',8],['tulip','Tuli',14],['grusha','Grusha',15]],
 };
 const GRUPOS = (() => {
@@ -1582,7 +1583,7 @@ const GRUPOS = (() => {
   const u2 = g('Teselia', [['cheren','Cheren',1],['roxie','Hiedra',4],['burgh','Camus',7],['elesa','Camila',13],['clay','Yakón',5],['skyla','Gerania',3],['drayden','Lirio',16],['marlon','Ciprián',11]]);
   m['Negro 2'] = m['Blanco 2'] = u2;
   m['X'] = m['Y'] = g('Kalos', LID.kalos);
-  ['Sol','Luna','Ultrasol','Ultraluna'].forEach(n => m[n] = g('Kahunas', [['hala','Kaudan',2],['olivia','Mayla',6],['nanu','Nanu',17],['hapu','Hela',5]]));
+  ['Sol','Luna','Ultrasol','Ultraluna'].forEach(n => m[n] = g('Kahunas', [['hala','Kaudan',2],['olivia','Mayla',6],['nanu','Denio',17],['hapu','Hela',5]]));
   m['Espada'] = galar(['bea','Judith',2], ['gordie','Morris',6]); m['Escudo'] = galar(['allister','Alistair',8], ['melony','Mel',15]);
   m['Escarlata'] = m['Púrpura'] = g('Paldea', LID.paldea);
   return m;
@@ -1625,8 +1626,8 @@ function pintarMed() {
   const liga = (al.e.length ? `<h3>Alto Mando</h3>${al.e.map(([sp, nom, tp], i) => tarjeta('e' + i, x.e[i], sp, nom, tipoDe(tp)[1], tipoDe(tp)[0])).join('')}` : '')
     + (al.c ? `<h3>Campeón</h3>${tarjeta('c', x.c, al.c[0], al.c[1], '#ffd23f', 'Campeón')}` : '');
   f.innerHTML = `<div class="calc ancha"><header><h2>🏅 Medallas · ${esc(P().n)}</h2><button id="medX">Cerrar</button></header>
-    <div class="med">${grupos || '<p style="grid-column:1/-1;color:var(--mut)">Esta región no tiene gimnasios clásicos (pruebas y kahunas en Alola).</p>'}${liga}</div>
-    <div class="tot-ev">${todos.length ? `${todos.filter((_, i) => x.m[i]).length} / ${todos.length} medallas · ` : ''}${al.e.length ? `${al.e.filter((_, i) => x.e[i]).length} / ${al.e.length} del Alto Mando · ` : ''}${x.c ? 'Campeón derrotado 🏆' : 'Campeón pendiente'}</div></div>`;
+    <div class="med">${grupos || '<p style="grid-column:1/-1;color:var(--mut)">Esta región no tiene gimnasios ni Liga Pokémon.</p>'}${liga}</div>
+    <div class="tot-ev">${todos.length ? `${todos.filter((_, i) => x.m[i]).length} / ${todos.length} medallas` : ''}${al.e.length ? `${todos.length ? ' · ' : ''}${al.e.filter((_, i) => x.e[i]).length} / ${al.e.length} del Alto Mando` : ''}${al.c ? `${todos.length || al.e.length ? ' · ' : ''}${x.c ? 'Campeón derrotado 🏆' : 'Campeón pendiente'}` : ''}</div></div>`;
 }
 $('bMed').onclick = () => {
   if (!S || document.getElementById('medFondo')) return;
