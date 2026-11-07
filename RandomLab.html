@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RandomLab</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap');
+  :root {
+    --az1:#2f4fce; --az2:#223ba6; --az3:#16257a; --az4:#0b1450; --borde:#e8efff; --luz:#7f98f0;
+    --am:#ffd62e; --mut:#b6c3f5; --txt:#fff;
+    --grass:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='96' height='96' shape-rendering='crispEdges'><rect width='96' height='96' fill='%233b873c'/><g fill='%2335793a'><rect x='6' y='10' width='6' height='6'/><rect x='40' y='4' width='6' height='6'/><rect x='70' y='22' width='6' height='6'/><rect x='22' y='46' width='6' height='6'/><rect x='58' y='54' width='6' height='6'/><rect x='84' y='70' width='6' height='6'/><rect x='10' y='80' width='6' height='6'/><rect x='46' y='84' width='6' height='6'/></g><g fill='%2347953f'><rect x='24' y='14' width='6' height='6'/><rect x='62' y='6' width='6' height='6'/><rect x='88' y='40' width='6' height='6'/><rect x='6' y='56' width='6' height='6'/><rect x='38' y='66' width='6' height='6'/><rect x='72' y='86' width='6' height='6'/><rect x='52' y='30' width='6' height='6'/></g><g fill='%23f7f2f2'><rect x='30' y='36' width='4' height='4'/><rect x='26' y='40' width='4' height='4'/><rect x='34' y='40' width='4' height='4'/><rect x='30' y='44' width='4' height='4'/></g><g fill='%23f4a6c6'><rect x='76' y='60' width='4' height='4'/><rect x='72' y='64' width='4' height='4'/><rect x='80' y='64' width='4' height='4'/><rect x='76' y='68' width='4' height='4'/></g><g fill='%23ffd23f'><rect x='14' y='28' width='4' height='4'/></g></svg>");
+    color-scheme:dark;
+  }
+  * { box-sizing:border-box; }
+  [hidden] { display:none !important; }
+  ::-webkit-scrollbar { width:12px; height:12px; }
+  ::-webkit-scrollbar-track { background:#0b145066; border-radius:99px; }
+  ::-webkit-scrollbar-thumb { background:var(--luz); border-radius:99px; border:3px solid transparent; background-clip:padding-box; }
+  ::-webkit-scrollbar-thumb:hover { background:var(--am); background-clip:padding-box; border:3px solid transparent; }
+  ::-webkit-scrollbar-corner { background:transparent; }
+  @supports not selector(::-webkit-scrollbar) { * { scrollbar-width:thin; scrollbar-color:var(--luz) transparent; } }
+  html, body { margin:0; height:100%; }
+  body { font:15px/1.35 'Pixelify Sans','Silkscreen','Courier New',monospace; color:var(--txt); background:var(--grass); background-size:192px; image-rendering:pixelated; overflow:hidden; }
+  body::before { content:''; position:fixed; inset:0; pointer-events:none; background:radial-gradient(ellipse at center, transparent 55%, #000b 100%); z-index:0; }
+  button, input, select { font:inherit; color:inherit; }
+  img { image-rendering:pixelated; }
+
+  /* ---- componentes retro ---- */
+  button { background:var(--az4); border:2px solid var(--luz); border-radius:10px; padding:5px 12px; cursor:pointer; transition:.12s; }
+  button:hover:not(:disabled) { border-color:var(--am); color:var(--am); transform:translateY(-1px); }
+  button:disabled { opacity:.4; cursor:not-allowed; }
+  button.primary { background:linear-gradient(#ffe666,#ffbf1f); color:#2a1d00; border-color:#fff3b0; font-weight:700; text-shadow:0 1px 0 #fff6; }
+  button.primary:hover:not(:disabled) { color:#2a1d00; filter:brightness(1.08); }
+  button.peligro:hover:not(:disabled) { border-color:#ff6b6e; color:#ff9a9c; }
+  .pill { display:inline-flex; align-items:center; gap:8px; background:var(--az4); border:2px solid var(--borde); border-radius:99px; padding:4px 14px; box-shadow:0 0 0 2px #0008; }
+  button.pill { padding:4px 14px; }
+  input, select { background:#0a1556; border:2px solid #5a76e6; border-radius:9px; padding:5px 10px; }
+  input:focus, select:focus { outline:none; border-color:var(--am); }
+  select option, select optgroup { background:#0a1556; }
+  .panel, .col { background:linear-gradient(180deg,var(--az1),var(--az2)); border:3px solid var(--borde); border-radius:12px; box-shadow:0 0 0 2px var(--az4), 0 12px 26px #000a; }
+  h3 { margin:0 0 6px; font-size:13px; color:var(--am); font-weight:700; text-transform:uppercase; letter-spacing:.08em; text-shadow:1px 1px 0 #0008; }
+  .titulo-px { font-weight:700; color:#ffd32a; text-transform:uppercase; line-height:.95; letter-spacing:2px;
+    text-shadow:3px 0 #3a1b00, -3px 0 #3a1b00, 0 3px #3a1b00, 0 -3px #3a1b00, 3px 3px #3a1b00, -3px 3px #3a1b00, 3px -3px #3a1b00, -3px -3px #3a1b00, 0 7px 0 #8a4a00; }
+
+  /* ---- pantalla de inicio ---- */
+  #inicio { position:fixed; inset:0; z-index:2; overflow:auto; display:flex; align-items:flex-start; justify-content:center; padding:22px 14px 40px; }
+  #inicio .centro { width:min(980px,100%); display:flex; flex-direction:column; align-items:center; gap:14px; position:relative; z-index:2; }
+  #inicio h1 { margin:0; font-size:clamp(40px,7vw,76px); text-align:center; }
+  #inicio .sub { margin:0; letter-spacing:.35em; font-size:13px; color:#fff; text-shadow:2px 2px 0 #000a; text-align:center; }
+  #inicio .bienv { margin:0; text-align:center; font-size:clamp(20px,3.4vw,32px); font-weight:700; color:#fff; letter-spacing:.06em; text-transform:uppercase; line-height:1.3; text-shadow:2px 0 #0a1556, -2px 0 #0a1556, 0 2px #0a1556, 0 -2px #0a1556, 0 5px 0 #000a; }
+  #inicio .bienv small { font-size:.5em; color:var(--am); letter-spacing:.2em; }
+  #inicio .gh { color:#fff; text-decoration:none; font-size:17px; letter-spacing:.08em; padding:2px 16px 2px 8px; }
+  #inicio .creditos { margin:4px 0 0; font-size:11px; line-height:1.6; text-align:center; color:#fffc; text-shadow:1px 1px 0 #000a; }
+  #inicio .gh img { width:40px; height:40px; }
+  #inicio .gh:hover { border-color:var(--am); color:var(--am); }
+  .reg { width:100%; padding:18px 20px 20px; display:flex; flex-direction:column; gap:10px; align-items:center; }
+  .reg label { align-self:flex-start; }
+  .reg #inNombre { width:100%; font-size:20px; text-align:center; letter-spacing:.1em; padding:9px; }
+  .gens { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
+  .gens button { padding:3px 11px; border-radius:99px; font-size:13px; }
+  .gens button.on { background:var(--am); color:#2a1d00; border-color:#fff3b0; font-weight:700; }
+  .carrusel { position:relative; width:100%; height:236px; display:flex; align-items:center; justify-content:center; gap:10px; perspective:900px; }
+  .carrusel .flecha { font-size:26px; padding:8px 14px; flex:none; z-index:3; }
+  .carrusel .slots { flex:1; display:flex; align-items:center; justify-content:center; gap:4px; height:100%; min-width:0; }
+  .sl { display:flex; align-items:center; justify-content:center; transition:transform .3s, opacity .3s; cursor:pointer; opacity:.5; transform:scale(.62); flex:none; }
+  .sl.lejos { transform:scale(.46); opacity:.3; }
+  .sl.act { opacity:1; transform:scale(1.18); cursor:default; margin:0 16px; }
+  .sl.act .flota { animation:flota 2.6s ease-in-out infinite, entra .35s ease-out; }
+  .sl.act:hover .flota { animation-play-state:paused; }
+  @keyframes flota { 0%,100% { transform:translateY(0) rotate(-2deg); } 50% { transform:translateY(-10px) rotate(2deg); } }
+  @keyframes entra { from { opacity:0; scale:.7; } to { opacity:1; scale:1; } }
+  .sl .cart { transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)); transition:transform .12s; }
+  .infojuego { text-align:center; min-height:56px; }
+  .infojuego b { font-size:24px; color:var(--am); text-shadow:2px 2px 0 #000a; display:block; }
+  .infojuego span { color:var(--mut); font-size:14px; }
+  button.grande { font-size:20px; padding:10px 30px; border-radius:14px; letter-spacing:.06em; }
+  @keyframes bob { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
+
+  /* cartuchos (genéricos, dibujados con CSS) */
+  .cart { position:relative; width:132px; height:150px; filter:drop-shadow(0 6px 0 #0007); flex:none; --fs:17px; }
+  .cart.gba { width:150px; height:104px; --fs:15px; }
+  .cart.ds { width:96px; height:106px; --fs:12px; }
+  .cart.sw { width:88px; height:112px; --fs:12px; }
+  .cart .shell { position:absolute; inset:0; background:linear-gradient(90deg,#bfc1c9,#e6e7ec 30%,#a9abb5); border:3px solid #484a55; border-radius:6px;
+    clip-path:polygon(0 8px,8px 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%); }
+  .cart.gb .shell::before { content:''; position:absolute; left:0; right:0; top:3px; height:5px; background:repeating-linear-gradient(90deg,#0003 0 3px,transparent 3px 7px); }
+  .cart .label { position:absolute; left:9%; right:9%; top:12%; bottom:25%; border-radius:5px; border:3px solid #fffb;
+    background:linear-gradient(160deg,var(--c1),var(--c2)); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:2px; overflow:hidden; }
+  .cart .label::after { content:''; position:absolute; inset:0; background:linear-gradient(115deg,#fff4 0 18%,transparent 18% 100%); }
+  .estado-datos { font-size:13px; color:#ffd86b; text-align:center; } .estado-datos.mal { color:#ff8a8a; }
+  .extra-ini { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+  .grid-cart { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:14px; width:100%; max-height:340px; overflow:auto; padding:10px; background:#0003; border-radius:10px; justify-items:center; align-items:center; }
+  .grid-cart .cart { cursor:pointer; transition:transform .15s; } .grid-cart .cart:hover { transform:scale(1.08); } .grid-cart .cart.sel { outline:3px solid var(--am); outline-offset:4px; border-radius:8px; }
+  .continuar { width:100%; display:flex; flex-direction:column; gap:8px; }
+  .continuar h3 { margin:6px 0 0; align-self:flex-start; }
+  .run { display:flex; align-items:center; gap:10px; padding:8px 10px; background:#0004; border-radius:10px; }
+  .run .nm { flex:1; min-width:0; } .run .nm b { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .run .nm small { color:var(--mut); }
+  .run .peligro { padding:6px 10px; }
+  .run .eq { display:flex; } .run .eq img { width:34px; height:34px; }
+  .dlg-fondo { position:fixed; inset:0; z-index:99999; display:grid; place-items:center; background:#000a; animation:dlgIn .15s ease-out; }
+  .dlg { width:min(440px,90vw); display:flex; flex-direction:column; gap:14px; padding:18px 20px; background:linear-gradient(var(--az2),var(--az3)); border:3px solid var(--borde); border-radius:14px; box-shadow:0 0 0 3px #0008, 0 10px 0 #0006; }
+  .dlg h3 { margin:0; color:var(--am); font-size:14px; text-transform:uppercase; letter-spacing:1px; }
+  .dlg p { margin:0; white-space:pre-line; }
+  .dlg input { width:100%; padding:8px 10px; }
+  .dlg .ops { display:flex; flex-direction:column; gap:6px; max-height:50vh; overflow:auto; }
+  .dlg .ops button { text-align:left; }
+  .dlg .btns { display:flex; gap:10px; justify-content:flex-end; }
+  .dlg button.peligro-ok { background:linear-gradient(#ff7d80,#c92a2f); border-color:#ffd0d1; color:#fff; font-weight:700; }
+  @keyframes dlgIn { from { opacity:0; } }
+  .cart .ico { image-rendering:auto; max-width:100%; max-height:70%; width:auto; height:auto; position:relative; z-index:1; filter:drop-shadow(2px 2px 0 #000a); }
+  .cart .ttl { font-size:var(--fs); font-weight:700; line-height:1.05; text-shadow:2px 0 #000b,-2px 0 #000b,0 2px #000b,0 -2px #000b,2px 2px #000b; position:relative; z-index:1; word-break:break-word; }
+  .cart.ds .label i, .cart.sw .label i { font-size:9px; }
+  .cart .label i.l { font-size:8px; line-height:1.05; margin-top:2px; }
+  .cart.sw .label i.l, .cart.ds .label i.l { font-size:7px; }
+  .cart .label:has(i.l) .ico { max-height:56%; }
+  .cart .label i { font-style:normal; font-size:10px; margin-top:4px; opacity:.95; text-shadow:1px 1px 0 #000a; position:relative; z-index:1; }
+  .cart .pins { position:absolute; left:15%; right:15%; bottom:7%; height:8%; background:repeating-linear-gradient(90deg,#d6b22e 0 5px,#5a4710 5px 7px); border-radius:2px; }
+
+  .cart.foto { filter:drop-shadow(0 6px 0 #0007); }
+  .cart.foto img { width:100%; height:100%; object-fit:contain; image-rendering:auto; display:block; }
+
+  /* escena de inserción */
+  #escena { position:fixed; inset:0; z-index:20; background:var(--grass); background-size:192px; display:flex; align-items:center; justify-content:center; transition:opacity .5s; }
+  #escena::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at center, #0003 30%, #000c 100%); }
+  #escena.sale { opacity:0; }
+  #escena .stage { position:relative; width:520px; height:640px; z-index:1; }
+  #escena .conso { position:absolute; left:50%; top:210px; transform:translateX(-50%); z-index:2; filter:drop-shadow(0 14px 0 #0006); }
+  #escena .conso.clic { animation:clic .25s; }
+  @keyframes clic { 50% { transform:translateX(-50%) translateY(5px); } }
+  #escena .cartvuelo { position:absolute; left:50%; top:0; z-index:1; transition:transform 1.1s cubic-bezier(.5,0,.3,1); }
+  #escena .conso svg { display:block; width:auto; }
+  .conso .scr { fill:#10121b; transition:fill .35s; }
+  .conso.enc .scr { fill:var(--pantalla); }
+  .conso text.msg { fill:var(--tx,#0f380f); font-family:'Pixelify Sans','Courier New',monospace; font-weight:700; opacity:0; transition:opacity .3s; }
+  .conso.enc text.msg { opacity:1; }
+  #escena .omitir { position:absolute; bottom:18px; right:20px; z-index:3; font-size:13px; opacity:.85; }
+
+  /* ---- fondo tenebroso de la pantalla principal ---- */
+  body.noche { background:#05030d; }
+  #noche { position:fixed; inset:0; z-index:1; overflow:hidden; background:linear-gradient(#04020b 0%,#0f0826 50%,#2a1242 100%); }
+  #noche::after { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at center, transparent 45%, #000d 100%); pointer-events:none; }
+  #noche .estrellas, #noche .estrellas2 { position:absolute; inset:0 0 35% 0; animation:titila 4s ease-in-out infinite; }
+  #noche .estrellas { background-image:radial-gradient(1.5px 1.5px at 30px 40px,#fff,transparent),radial-gradient(1px 1px at 120px 90px,#cfd8ff,transparent),radial-gradient(1.5px 1.5px at 200px 20px,#fff,transparent),radial-gradient(1px 1px at 80px 150px,#fff,transparent),radial-gradient(1px 1px at 170px 180px,#ffe9a8,transparent); background-size:240px 220px; }
+  #noche .estrellas2 { background-image:radial-gradient(1px 1px at 60px 70px,#fff,transparent),radial-gradient(1.5px 1.5px at 180px 120px,#ffe9a8,transparent),radial-gradient(1px 1px at 250px 30px,#cfd8ff,transparent); background-size:310px 270px; animation-delay:-2s; }
+  @keyframes titila { 50% { opacity:.4; } }
+  #noche .luna { position:absolute; right:6%; top:6%; width:100px; height:100px; border-radius:50%; background:radial-gradient(circle at 35% 35%,#fffbe0,#e7dfae 60%,#bdb37c); box-shadow:0 0 70px 14px #f1ecc440; }
+  #noche .niebla { position:absolute; left:-50%; width:200%; height:300px; bottom:0; background:repeating-radial-gradient(ellipse at 20% 100%, #7a4bd655 0 40px, transparent 100px 200px); filter:blur(12px); animation:deriva 26s linear infinite; }
+  #noche .niebla.b { bottom:34px; opacity:.7; animation-duration:70s; animation-direction:reverse; }
+  @keyframes deriva { to { transform:translateX(25%); } }
+  #noche .siluetas { position:absolute; left:0; right:0; bottom:0; height:150px; background-repeat:repeat-x; background-position:bottom left; background-size:480px 150px; image-rendering:pixelated;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='480' height='150' shape-rendering='crispEdges'><g fill='%230a0614'><rect y='134' width='480' height='16'/><rect x='28' y='104' width='18' height='30'/><rect x='30' y='100' width='14' height='4'/><rect x='32' y='98' width='10' height='2'/><rect x='86' y='96' width='6' height='38'/><rect x='78' y='106' width='22' height='6'/><rect x='130' y='112' width='16' height='22'/><rect x='132' y='108' width='12' height='4'/><rect x='190' y='80' width='8' height='54'/><rect x='178' y='90' width='14' height='4'/><rect x='172' y='82' width='6' height='10'/><rect x='198' y='70' width='16' height='4'/><rect x='212' y='60' width='4' height='12'/><rect x='186' y='66' width='4' height='16'/><rect x='284' y='96' width='64' height='38'/><rect x='280' y='92' width='72' height='4'/><rect x='292' y='68' width='48' height='28'/><rect x='288' y='64' width='56' height='4'/><rect x='300' y='44' width='32' height='24'/><rect x='310' y='28' width='12' height='16'/><rect x='314' y='12' width='4' height='16'/><rect x='400' y='108' width='20' height='26'/><rect x='402' y='104' width='16' height='4'/><rect x='405' y='101' width='10' height='3'/><rect x='450' y='118' width='14' height='16'/><rect x='452' y='114' width='10' height='4'/></g><g fill='%23f2d36b'><rect x='312' y='52' width='8' height='10'/><rect x='304' y='76' width='6' height='10'/><rect x='322' y='76' width='6' height='10'/></g></svg>"); }
+  #noche .fantasma { position:absolute; left:0; width:var(--s,96px); opacity:.5; filter:drop-shadow(0 0 14px #a56bff); animation:cruza var(--d,60s) linear infinite, bob 4s ease-in-out infinite; }
+  #noche .fantasma.inv { scale:-1 1; }
+  @keyframes cruza { from { translate:-20vw 0; } to { translate:120vw 0; } }
+  #noche .fantasma.inv { animation-name:cruzaInv, bob; }
+  @keyframes cruzaInv { from { translate:120vw 0; } to { translate:-20vw 0; } }
+  #noche .luna { animation:lunaPulso 6s ease-in-out infinite; }
+  @keyframes lunaPulso { 50% { box-shadow:0 0 110px 30px #f1ecc455; } }
+  #noche .rayo { position:absolute; inset:0; background:radial-gradient(ellipse at 30% 0%, #e9dcff 0%, #9d6bff55 40%, transparent 70%); opacity:0; animation:rayo 11s infinite; mix-blend-mode:screen; }
+  @keyframes rayo { 0%,92%,100% { opacity:0; } 93% { opacity:.85; } 94% { opacity:.1; } 95% { opacity:.7; } 97% { opacity:0; } }
+  #noche .murci { position:absolute; left:0; width:46px; height:30px; background-size:100% 100%; image-rendering:pixelated; animation:vuelaM var(--d,18s) linear infinite, aleteo .3s steps(1) infinite; }
+  @keyframes vuelaM { 0% { translate:-10vw 0; } 25% { translate:25vw -40px; } 50% { translate:55vw 30px; } 75% { translate:85vw -30px; } 100% { translate:112vw 10px; } }
+  @keyframes aleteo { 0% { background-image:var(--a); } 50% { background-image:var(--b); } }
+  #noche .fuego { position:absolute; bottom:-20px; width:var(--t,8px); height:var(--t,8px); border-radius:50%; background:radial-gradient(circle,#fff 0%,#c9a6ff 40%,transparent 70%); box-shadow:0 0 12px 4px #9d6bff88; animation:sube var(--d,14s) linear infinite; opacity:0; }
+  @keyframes sube { 0% { transform:translate(0,0); opacity:0; } 10% { opacity:.9; } 50% { transform:translate(28px,-50vh); } 90% { opacity:.7; } 100% { transform:translate(-20px,-105vh); opacity:0; } }
+  #escena { background:transparent; }
+  .col { background:linear-gradient(180deg,rgba(47,79,206,.72),rgba(30,52,150,.72)); backdrop-filter:blur(3px); }
+
+  /* ---- intro en vídeo ---- */
+  #intro { position:fixed; inset:0; z-index:30; background:#000; display:flex; align-items:center; justify-content:center; }
+  #intro video { width:100%; height:100%; object-fit:contain; }
+  #intro button { position:absolute; bottom:18px; right:20px; }
+
+  /* ---- pantalla principal ---- */
+  #app { position:fixed; inset:0; z-index:2; display:flex; flex-direction:column; padding:10px 12px 56px; gap:10px; }
+  .top { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .logo { display:flex; align-items:center; gap:9px; font-size:17px; font-weight:700; color:var(--am); text-shadow:2px 2px 0 #000a; }
+  .ball { width:22px; height:22px; border-radius:50%; background:linear-gradient(#e5484d 0 44%, #111 44% 56%, #f4f4f4 56%); border:2px solid #111; position:relative; flex:none; }
+  .ball::after { content:''; position:absolute; inset:50% auto auto 50%; width:7px; height:7px; background:#f4f4f4; border:2px solid #111; border-radius:50%; transform:translate(-50%,-50%); }
+  .mini-cart { width:14px; height:16px; border-radius:2px; border:2px solid #fffc; background:linear-gradient(160deg,var(--c1),var(--c2)); flex:none; }
+  .espacio { flex:1; }
+  .grupo { display:flex; gap:4px; }
+  button.icono { padding:4px 9px; }
+
+  .work { flex:1; min-height:0; display:grid; grid-template-columns:minmax(330px,27%) minmax(0,1fr) minmax(310px,26%); gap:10px; }
+  .col { display:flex; flex-direction:column; min-height:0; min-width:0; overflow:hidden; }
+  .tabsbar { display:flex; gap:6px; padding:8px; border-bottom:3px solid var(--az4); background:#0b145055; }
+  .tabsbar button { flex:1; padding:4px 6px; border-radius:99px; font-size:14px; }
+  .tabsbar button { display:flex; align-items:center; justify-content:center; gap:7px; }
+  .tabsbar button[hidden] { display:none; }
+  .tabsbar .ti svg { width:22px; height:22px; display:block; }
+  .tabsbar button.on { background:var(--am); color:#2a1d00; border-color:#fff3b0; font-weight:700; }
+  .cuerpo { flex:1; min-height:0; overflow:auto; padding:10px; display:flex; flex-direction:column; gap:8px; }
+  .busca { display:flex; gap:6px; padding:8px 10px 0; }
+  .busca input { flex:1; min-width:0; }
+  .ambito { font-size:12px; color:var(--mut); display:flex; gap:8px; align-items:center; justify-content:space-between; }
+  .ambito button { padding:1px 10px; font-size:12px; border-radius:99px; }
+
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(80px,1fr)); gap:6px; }
+  .poke { background:var(--az3); border:2px solid #3550c8; border-radius:9px; padding:4px 2px; text-align:center; cursor:pointer; font-size:11px; }
+  .poke:hover { border-color:var(--am); transform:translateY(-2px); }
+  .poke img { width:64px; height:64px; }
+  .poke small { color:var(--mut); display:block; }
+  .poke.sel { border-color:var(--am); background:#27409e; }
+
+  /* equipo / cajas */
+  .cartas { display:flex; flex-direction:column; gap:8px; }
+  .carta { background:var(--az3); border:2px solid #3550c8; border-radius:10px; padding:8px; display:flex; gap:10px; cursor:pointer; }
+  .carta:hover, .carta.sel { border-color:var(--am); }
+  .carta.libre { align-items:center; justify-content:center; color:var(--mut); border-style:dashed; background:transparent; font-size:13px; min-height:64px; }
+  .carta > img { width:88px; height:88px; flex:none; }
+  .carta .info { flex:1; min-width:0; display:flex; flex-direction:column; gap:5px; }
+  .carta .tit { font-size:15px; font-weight:700; }
+  .carta .sub { color:var(--mut); font-size:12px; }
+  .chips { display:flex; flex-wrap:wrap; align-content:flex-start; gap:4px; flex:none; }
+  .chip { align-self:flex-start; }
+  .chip { font-size:12px; padding:0 8px; border-radius:99px; background:var(--c,#555); color:#fff; text-shadow:1px 1px 0 #0007; border:1px solid #fff5; }
+  .chip.vacio { padding:0 8px; margin:0; max-width:none; background:transparent; border:1px dashed #5a76e6; color:var(--mut); }
+  .objeto { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--mut); }
+  .objeto img { width:22px; height:22px; }
+  .caido { filter:grayscale(1); opacity:.55; }
+  .caido .tit::after, .caido .nm::after { content:' ✝'; }
+  .slots6 { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:5px; }
+  .slots6.cementerio { padding:10px; border-radius:12px; border:2px solid #4b2f7a; box-shadow:inset 0 0 40px #000c;
+    background:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='46'><circle cx='23' cy='23' r='23' fill='%23e8e0b0' opacity='.55'/><circle cx='15' cy='17' r='5' fill='%23b8b088' opacity='.5'/><circle cx='30' cy='28' r='3' fill='%23b8b088' opacity='.5'/></svg>") right 14px top 10px / 46px no-repeat,
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><g fill='%23090414' opacity='.55'><path d='M12 52V30a10 10 0 0 1 20 0v22z'/><rect x='20' y='56' width='4' height='3'/><path d='M84 120v-24a12 12 0 0 1 24 0v24z'/><rect x='93' y='66' width='6' height='0'/><rect x='46' y='96' width='5' height='20'/><rect x='40' y='101' width='17' height='5'/><rect x='110' y='20' width='4' height='16'/><rect x='105' y='24' width='14' height='4'/></g><g fill='%23ffffff' opacity='.35'><rect x='62' y='14' width='2' height='2'/><rect x='6' y='88' width='2' height='2'/><rect x='128' y='70' width='2' height='2'/><rect x='72' y='60' width='2' height='2'/></g></svg>"),
+      linear-gradient(#0b0620,#24103f 65%,#3a1a5a); }
+  .slots6.cementerio .slot2:not(.libre) { background:#1a0f33cc; border-color:#6a4fa0; }
+  .slots6.cementerio .slot2.libre { border-color:#4b2f7a; color:#6a4fa0; }
+  .slots6.caja { padding:10px; border-radius:12px; border:2px solid var(--bc); box-shadow:inset 0 0 30px #0008; background:var(--bt), var(--bg); }
+  .slots6.caja .slot2.libre { background:#0b1450aa; border-color:#9fb4ff99; color:#dbe3ff; }
+  .slots6.caja-0 { --bt:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'><g fill='%231f6a24' opacity='.55'><path d='M6 26l3-10 3 10z'/><path d='M12 26l3-8 3 8z'/><path d='M40 54l3-10 3 10z'/><path d='M46 54l3-8 3 8z'/></g><g fill='%23ffe45c' opacity='.7'><circle cx='30' cy='12' r='2'/><circle cx='10' cy='46' r='2'/></g></svg>"); --bg:linear-gradient(#3d9a3f,#2a7a30); --bc:#1c5a22; }
+  .slots6.caja-1 { --bt:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='70' height='70'><g fill='%23181420' opacity='.45'><ellipse cx='14' cy='18' rx='9' ry='6'/><ellipse cx='50' cy='46' rx='11' ry='7'/><ellipse cx='20' cy='58' rx='6' ry='4'/></g><g fill='%23ffffff' opacity='.15'><ellipse cx='11' cy='15' rx='4' ry='2'/><ellipse cx='46' cy='42' rx='5' ry='2'/></g></svg>"); --bg:linear-gradient(#4a4252,#2c2634); --bc:#6a6075; }
+  .slots6.caja-2 { --bt:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='32'><path d='M0 14q6-8 12 0t12 0t12 0t12 0' stroke='%23ffffff' stroke-opacity='.22' fill='none' stroke-width='2'/><path d='M0 30q6-8 12 0t12 0t12 0t12 0' stroke='%23ffffff' stroke-opacity='.14' fill='none' stroke-width='2'/></svg>"); --bg:linear-gradient(#1f86c9,#0b4a8a); --bc:#0b3a70; }
+  .slots6.caja-3 { --bt:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><g fill='%23ffb347' opacity='.7'><circle cx='10' cy='12' r='2'/><circle cx='38' cy='30' r='1.5'/><circle cx='22' cy='50' r='2'/><circle cx='52' cy='8' r='1.5'/></g><g fill='%23000' opacity='.25'><path d='M0 60l12-22 12 22z'/><path d='M34 60l10-16 10 16z'/></g></svg>"); --bg:linear-gradient(#2b0a0a,#7a1d0c 60%,#d9531a); --bc:#8a2a10; }
+  .slots6.caja-4 { --bt:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='50' height='50'><g fill='%23ffffff' opacity='.75'><circle cx='8' cy='10' r='2'/><circle cx='30' cy='24' r='1.5'/><circle cx='42' cy='6' r='1.5'/><circle cx='18' cy='42' r='2'/><circle cx='44' cy='40' r='1.5'/></g></svg>"); --bg:linear-gradient(#6f9bd0,#b9d6f0); --bc:#8fb3dc; }
+  .slots6.caja-5 { --bt:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='90' height='50'><g fill='%23ffffff' opacity='.4'><ellipse cx='24' cy='16' rx='16' ry='7'/><ellipse cx='36' cy='13' rx='10' ry='6'/><ellipse cx='68' cy='38' rx='14' ry='6'/><ellipse cx='78' cy='35' rx='8' ry='5'/></g></svg>"); --bg:linear-gradient(#3b8fe0,#9fd4ff); --bc:#6fb0ec; }
+  .slots6.caja-6 { --bt:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='40'><path d='M0 30q20-18 40 0t40 0' stroke='%238a5a1a' stroke-opacity='.3' fill='none' stroke-width='2'/><path d='M0 12q20-12 40 0t40 0' stroke='%23fff' stroke-opacity='.18' fill='none' stroke-width='2'/></svg>"); --bg:linear-gradient(#d8aa5a,#b98438); --bc:#a8742e; }
+  .slots6.caja-7 { --bt:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><g fill='none' stroke='%23b8ff7a' stroke-opacity='.3' stroke-width='2'><circle cx='14' cy='16' r='5'/><circle cx='42' cy='38' r='7'/><circle cx='24' cy='52' r='3'/></g></svg>"); --bg:linear-gradient(#1f2a1a,#3b2f4a); --bc:#55406a; }
+  .arena { padding:14px; gap:12px; border-radius:12px; border:2px solid #d9b44a; box-shadow:inset 0 0 40px #000a;
+    background: radial-gradient(ellipse 80% 45% at 50% 0%, #d9b44a2a, transparent 70%), url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='72' height='72'><g fill='none' stroke='%23d9b44a' stroke-opacity='.10' stroke-width='2'><circle cx='36' cy='36' r='20'/><path d='M16 36h40'/><circle cx='36' cy='36' r='6'/></g></svg>"), linear-gradient(#14161f,#222735 55%,#10121a); }
+  .arena .carta:not(.libre) { background:#1b2030d9; }
+  .arena .carta.libre, .arena .slot2.libre { background:#0b0d14bb; border-color:#d9b44a88; color:#f1e6c0; }
+  .pin { vertical-align:-2px; color:#ff4d4d; }
+  .calc { width:min(640px,95vw); padding:16px; background:linear-gradient(var(--az2),var(--az3)); border:3px solid var(--borde); border-radius:14px; box-shadow:0 0 0 3px #0008; display:grid; gap:12px; max-height:92vh; overflow:auto; }
+  .calc header { display:flex; align-items:center; gap:10px; } .calc h2 { margin:0 auto 0 0; font-size:18px; color:var(--am); text-transform:uppercase; letter-spacing:1px; }
+  .calc .gen { display:flex; gap:10px; flex-wrap:wrap; align-items:center; } .calc label { font-size:12px; display:grid; gap:3px; color:var(--mut); }
+  .calc table { width:100%; border-collapse:collapse; } .calc th { font-size:11px; color:var(--mut); text-align:left; padding:2px 4px; font-weight:normal; }
+  .calc td { padding:3px 4px; } .calc td input { width:64px; } .calc td.res { font-weight:bold; font-size:18px; text-align:right; }
+  .calc td.res.up { color:#6bdf4e; } .calc td.res.down { color:#ee4d52; }   .calc.ancha { width:min(780px,95vw); }
+  .med { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; } .med h3 { grid-column:1/-1; margin:4px 0 0; font-size:13px; color:var(--am); text-transform:uppercase; letter-spacing:1px; }
+  .med .fin { padding:12px 0; border-radius:99px; font-size:15px; grid-column:span 2; } .med .fin.on { background:var(--am); color:#1a1a1a; border-color:var(--am); font-weight:bold; }
+  .med .lid { display:grid; justify-items:center; gap:2px; padding:8px 4px 6px; border-radius:12px; border:2px solid #ffffff22; background:#0006; }
+  .med .lid img.sp { height:84px; width:auto; max-width:100%; object-fit:contain; filter:grayscale(.75) brightness(.7); transition:filter .15s; }
+  .med .lid svg { width:30px; height:30px; filter:grayscale(1) brightness(.6); transition:filter .15s; }
+  .med .lid b { font-size:13px; } .med .lid small { color:var(--mut); font-size:11px; }
+  .med .lid.on { border-color:var(--c); box-shadow:0 0 12px -2px var(--c), inset 0 0 14px -6px var(--c); }
+  .med .lid.on img.sp, .med .lid.on svg { filter:none; }
+  .aviso-copia { text-align:center; font-size:13px; color:var(--mut); } .aviso-copia.mal { color:#ffb347; }
+  .calc .tot-ev { font-size:12px; color:var(--mut); } .calc .tot-ev.mal { color:#ee4d52; }
+  .rutas-fondo { position:fixed; inset:0; z-index:9000; display:grid; place-items:center; background:#000b; animation:dlgIn .15s ease-out; }
+  .rutas { width:min(680px,95vw); height:min(760px,92vh); display:grid; grid-template-columns:1fr; grid-template-rows:auto 1fr; gap:12px 16px; padding:16px; background:linear-gradient(var(--az2),var(--az3)); border:3px solid var(--borde); border-radius:14px; box-shadow:0 0 0 3px #0008; }
+  .rutas > header { grid-column:1/-1; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .rutas h2 { margin:0; font-size:18px; color:var(--am); text-transform:uppercase; letter-spacing:1px; margin-right:auto; }
+  .rutas .prog { display:flex; gap:12px; flex-wrap:wrap; font-size:14px; } .rutas .prog b { color:var(--am); }
+  .rutas .lista-r { display:flex; flex-direction:column; gap:8px; min-height:0; }
+  .rutas .filas { flex:1; min-height:0; overflow:auto; display:flex; flex-direction:column; gap:5px; padding-right:4px; }
+  .ruta { display:flex; align-items:center; gap:8px; padding:5px 8px; background:var(--az4); border:2px solid #3550c8; border-left-width:6px; border-radius:8px; }
+  .ruta.c { border-left-color:#4fd16b; }
+  .ruta .cap { display:flex; align-items:center; gap:4px; min-width:150px; justify-content:flex-start; color:var(--am); } .ruta .cap img { width:34px; height:34px; }
+  .tabsC button.over { outline:2px solid var(--am); }
+  .ruta .lugar { flex:1; min-width:0; }
+  .ruta button { padding:2px 8px; font-size:13px; }
+  .picker-fondo { position:fixed; inset:0; z-index:99998; display:grid; place-items:center; background:#000a; }
+  .picker { width:min(560px,92vw); max-height:80vh; display:flex; flex-direction:column; gap:10px; padding:16px; background:linear-gradient(var(--az2),var(--az3)); border:3px solid var(--borde); border-radius:14px; }
+  .picker h3 { margin:0; color:var(--am); font-size:14px; text-transform:uppercase; }
+  .picker .gr { overflow:auto; display:grid; grid-template-columns:repeat(auto-fill,minmax(84px,1fr)); gap:6px; }
+  .picker .gr .p { background:var(--az4); border:2px solid #3550c8; border-radius:8px; text-align:center; font-size:11px; padding:2px; cursor:pointer; }
+  .picker .gr .p:hover { border-color:var(--am); } .picker .gr .p img { width:48px; height:48px; } .picker .sec { grid-column:1/-1; color:var(--mut); font-size:12px; }
+  .slot2 { background:var(--az3); border:2px solid #3550c8; border-radius:8px; aspect-ratio:1/1.08; padding:2px; text-align:center; cursor:pointer; font-size:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; min-width:0; }
+  .slot2:hover, .slot2.sel { border-color:var(--am); }
+  .slot2.libre { background:transparent; border:2px dashed #3550c8; color:#5a76e6; font-size:16px; cursor:default; }
+  .slot2 img { width:46px; height:46px; }
+  .slot2 .nm { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+  .slot2 small { color:var(--mut); }
+  .over { outline:3px solid var(--am); outline-offset:-3px; }
+  .cajabar { display:flex; align-items:center; justify-content:space-between; gap:6px; }
+  .tabsC { display:flex; flex-wrap:wrap; gap:4px; }
+  .tabsC button { padding:0 9px; font-size:13px; border-radius:99px; }
+  .tabsC button.on { background:var(--am); color:#2a1d00; border-color:#fff3b0; }
+
+  /* taller (editor) */
+  #editor { overflow:auto; }
+  .vacio { margin:auto; text-align:center; color:var(--mut); padding:30px; max-width:360px; }
+  .vacio .ball { width:60px; height:60px; margin:0 auto 14px; }
+  .vacio .ball::after { width:16px; height:16px; }
+  .vacio b { color:var(--am); font-size:20px; text-shadow:2px 2px 0 #000a; }
+  .hero { display:flex; gap:18px; align-items:center; padding:16px 18px; }
+  .marco { position:relative; width:184px; height:184px; flex:none; display:flex; align-items:center; justify-content:center;
+    background:radial-gradient(circle at 50% 80%, #2a3e9e, #0c1656); border:3px solid var(--tc,#8a7be0); border-radius:12px; box-shadow:0 0 0 2px var(--az4), inset 0 0 36px #000a; }
+  .marco img { width:144px; height:144px; position:relative; z-index:1; filter:drop-shadow(0 4px 0 #0006); }
+  .marco::after { content:''; position:absolute; bottom:22px; left:50%; width:96px; height:16px; transform:translateX(-50%); background:radial-gradient(#0009,transparent 70%); }
+  .hero .hid { flex:1; min-width:0; display:flex; flex-direction:column; gap:8px; }
+  .hero h1 { margin:0; font-size:30px; display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; color:#fff; text-shadow:3px 3px 0 #000a; }
+  .hero h1 small { color:var(--mut); font-size:15px; text-shadow:none; }
+  .tag { font-size:12px; padding:0 9px; border-radius:99px; background:var(--c,#888); color:#fff; text-shadow:1px 1px 0 #0008; border:2px solid #fff8; display:inline-block; }
+  .campos { display:grid; grid-template-columns:110px 1fr; gap:6px; align-items:center; }
+  .campos select { grid-column:1 / -1; }
+  .campos .etq { color:var(--mut); font-size:13px; }
+  .edcuerpo { padding:4px 18px 14px; display:grid; grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr); gap:18px; align-items:start; }
+  .edcuerpo section { display:flex; flex-direction:column; gap:8px; }
+  .slots2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:6px; }
+  .slot { min-width:0; overflow:hidden; white-space:nowrap; min-height:40px; border:2px dashed #5a76e6; border-radius:10px; padding:5px 10px; cursor:pointer; display:flex; align-items:center; gap:7px; color:var(--mut); background:#0b145044; }
+  .slot.lleno { border:2px solid #7f98f0; background:var(--az3); color:#fff; }
+  .slot:hover { border-color:var(--am); }
+  .slot img { width:28px; height:28px; }
+  .acciones { display:flex; flex-wrap:wrap; gap:6px; padding:12px 18px; border-top:3px solid var(--az4); margin-top:auto; position:sticky; bottom:0; background:linear-gradient(180deg,var(--az2),#1d3496); }
+  .acciones .sp { flex:1; }
+
+  /* stats */
+  .mod { font-size:13px; background:var(--az3); border:2px solid #3550c8; border-radius:9px; padding:6px 10px; line-height:1.55; }
+  .mod b { color:var(--am); }
+  .mod.nota { color:var(--mut); }
+  .mod img { width:22px; height:22px; vertical-align:middle; }
+  .tabla { display:flex; flex-direction:column; gap:3px; background:#0b145055; border:2px solid #3550c8; border-radius:9px; padding:6px; }
+  .sr { display:grid; grid-template-columns:86px 1fr 34px; gap:8px; align-items:center; padding:2px 6px; border-radius:6px; font-size:14px; }
+  .cmp .sr { grid-template-columns:86px 1fr 34px 40px; }
+  .sr.up { background:#1fa65a66; }
+  .sr.down { background:#d6404366; }
+  .sr .l { color:#dbe4ff; white-space:nowrap; }
+  .sr .b { height:13px; background:#070d38; border:2px solid #070d38; box-shadow:0 0 0 1px #4f6be0; border-radius:3px; overflow:hidden; }
+  .sr .b i { display:block; height:100%; background:repeating-linear-gradient(90deg,var(--c) 0 6px,transparent 6px 8px); }
+  .sr .v { text-align:right; font-weight:700; }
+  .sr .d { text-align:right; font-size:13px; }
+  .up-t { color:#6dff9a; } .down-t { color:#ff8a8d; }
+  .tabla .tot { text-align:right; color:var(--mut); padding:2px 6px 0; font-size:13px; }
+  .tabla .tot b { color:#6dff9a; }
+  .megaimg { display:flex; flex-direction:column; align-items:flex-start; gap:6px; margin-top:14px; }
+  .megaimg b { color:var(--am); text-shadow:2px 2px 0 #000a; }
+
+  /* panel derecho */
+  .filtros { display:flex; flex-wrap:wrap; gap:4px; align-items:center; }
+  .fchip { font-size:11px; padding:0 8px; border-radius:99px; border:2px solid var(--c,#7f98f0); background:transparent; color:#fff; cursor:pointer; }
+  .fchip.on { background:var(--c,var(--az4)); color:#fff; }
+  .filtros select { padding:1px 6px; font-size:12px; margin-left:auto; }
+  .lista { display:flex; flex-direction:column; gap:5px; }
+  .lista.chica { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); }
+  .move { display:flex; align-items:center; gap:8px; background:var(--az3); border:2px solid #3550c8; border-left:7px solid var(--c,#888); border-radius:8px; padding:5px 9px; cursor:pointer; }
+  .move:hover { border-color:var(--am); border-left-color:var(--c); }
+  .move .n { flex:1; font-weight:600; }
+  .move small { color:var(--mut); text-align:right; font-size:12px; }
+  .item { display:flex; align-items:center; gap:6px; background:var(--az3); border:2px solid #3550c8; border-radius:8px; padding:3px 8px; cursor:pointer; font-size:13px; }
+  .item:hover { border-color:var(--am); }
+  .item img { width:28px; height:28px; }
+
+  #aviso { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); background:var(--az4); border:2px solid var(--borde); padding:7px 18px; border-radius:99px; opacity:0; transition:.3s; pointer-events:none; z-index:50; }
+  #aviso.ver { opacity:1; }
+  #carga { position:fixed; inset:0; background:var(--az4); display:flex; align-items:center; justify-content:center; flex-direction:column; gap:8px; z-index:60; }
+  @media (max-width:1250px) { .edcuerpo { grid-template-columns:1fr; } }
+  @media (max-width:1100px) {
+    body { overflow:auto; } #app { position:static; min-height:100vh; }
+    .work { grid-template-columns:1fr; } #editor { order:-1; } .col { max-height:75vh; }
+  }
+  @media (prefers-reduced-motion:reduce) { .sl.act .flota { animation:none; } }
+</style>
+</head>
+<body>
+
+<!-- ============ PANTALLA DE INICIO ============ -->
+<section id="inicio">
+  <div class="centro">
+    <h1 class="titulo-px">RandomLab</h1>
+    <p class="sub">EDITOR DE EQUIPOS PARA TU RUN</p>
+    <p class="bienv">¡Bienvenido, entrenador!</p>
+    <div class="panel reg">
+      <label for="inNombre"><h3>1 · Registro: nombre de tu personaje</h3></label>
+      <input id="inNombre" maxlength="12" placeholder="Escribe tu nombre" autocomplete="off">
+      <h3 style="align-self:flex-start;margin-top:6px">2 · Elige tu cartucho</h3>
+      <div class="gens" id="gens"></div>
+      <div class="carrusel" id="carrusel">
+        <button class="flecha" id="bIzq" title="Anterior (←)">◀</button>
+        <div class="slots" id="slotsC"></div>
+        <button class="flecha" id="bDer" title="Siguiente (→)">▶</button>
+      </div>
+      <div class="infojuego" id="infoJuego"></div>
+      <button id="bMusicaIni" class="pill" style="position:fixed;top:12px;right:14px;z-index:5">🔊</button>
+      <button class="primary grande" id="bInsertar">▶ INSERTAR CARTUCHO</button>
+      <div id="estadoDatos" class="estado-datos" hidden></div>
+      <div id="avisoCopia" class="aviso-copia"></div>
+      <div class="extra-ini"><button id="bTodos" class="pill">▦ Ver todos los cartuchos</button><button id="bCopia" class="pill" title="Descarga todas tus runs en un archivo">💾 Guardar copia</button><button id="bRestaurar" class="pill" title="Recupera tus runs desde un archivo de copia">📂 Restaurar copia</button><input id="fCopia" type="file" accept=".json,application/json" hidden></div>
+      <div id="gridC" class="grid-cart" hidden></div>
+      <div id="continuar" class="continuar"></div>
+
+    </div>
+    <a class="pill gh" href="https://github.com/RandomLab-Pk?tab=repositories" target="_blank" rel="noopener"><img id="ghPk" alt="" width="48" height="48">GitHub: RandomLab-Pk</a>
+    <p class="creditos">Proyecto de fans sin ánimo de lucro · No afiliado a Nintendo, Game Freak ni The Pokémon Company<br>Pokémon y sus marcas son de sus dueños · Datos: PokéAPI · Entrenadores: Pokémon Showdown · © 2026 RandomLab-Pk (MIT)</p>
+  </div>
+</section>
+
+<div id="escena" hidden>
+  <div class="stage"><div class="conso" id="conso"></div><div class="cartvuelo" id="cartvuelo"></div></div>
+  <button class="omitir" id="bOmitir">Saltar ▶▶</button>
+</div>
+
+<div id="intro" hidden><video id="introVideo" playsinline></video><button id="bSaltarIntro" class="pill">Saltar intro ▶▶</button></div>
+
+<div id="noche" hidden>
+  <div class="estrellas"></div><div class="estrellas2"></div><div class="luna"></div>
+  <img class="fantasma " style="top:12%;--s:96px;--d:55s;animation-delay:-0s,-0s" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/92.png" alt="">
+  <img class="fantasma inv" style="top:4%;--s:84px;--d:70s;animation-delay:-11s,-1s" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/200.png" alt="">
+  <img class="fantasma " style="top:30%;--s:90px;--d:48s;animation-delay:-22s,-2s" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/607.png" alt="">
+  <img class="fantasma inv" style="top:55%;--s:130px;--d:80s;animation-delay:-33s,-3s" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/94.png" alt="">
+  <img class="fantasma " style="top:70%;--s:100px;--d:62s;animation-delay:-44s,-4s" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/93.png" alt="">
+  <img class="fantasma inv" style="top:82%;--s:84px;--d:52s;animation-delay:-55s,-5s" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/355.png" alt="">
+  <div class="rayo"></div>
+  <div id="murcis"></div><div id="fuegos"></div>
+  <div class="siluetas"></div><div class="niebla b"></div><div class="niebla"></div>
+</div>
+
+<!-- ============ PANTALLA PRINCIPAL ============ -->
+<div id="app" hidden>
+  <header class="top">
+    <div class="logo"><span class="ball"></span>RandomLab</div>
+    <span class="pill" id="pillJ"></span>
+    <button id="bRutas" class="pill" title="Apunta qué Pokémon has capturado y dónde"><svg class='pin' width='16' height='16' viewBox='0 0 8 8' shape-rendering='crispEdges' aria-hidden='true'><path fill='currentColor' d='M2 0h4v1h1v4H6v1H5v1H4v1H3V7H2V6H1V1h1z'/><path fill='#0b1450' d='M3 2h2v2H3z'/></svg> Capturas</button>
+    <button id="bCalc" class="pill" title="Calculadora de stats: EVs, IVs y naturaleza">🧮 Calculadora</button>
+    <button id="bMed" class="pill" title="Medallas, Alto Mando y Campeón de esta run">🏅 Medallas</button>
+    <span class="espacio"></span>
+    <div class="grupo">
+      <select id="selPartida" title="Partida (una por run)"></select>
+      <button id="bNueva" class="icono" title="Nueva partida">＋</button>
+      <button id="bRenombrar" class="icono" title="Renombrar partida">✎</button>
+    </div>
+    <button id="bMusica" class="pill" title="Música">🔊</button>
+    <button id="bGuardar" class="pill" title="Guarda la partida en este navegador (también se guarda sola)">💾 Guardar</button>
+    <button id="bLimpiar" class="pill" title="Reinicia la partida actual: quita todos los Pokémon del equipo y las cajas, y limpia editor, búsquedas y filtros.">Borrar</button>
+    <button id="bSalir" class="pill" title="Volver a la pantalla de inicio">Salir</button>
+  </header>
+
+  <main class="work">
+    <section class="col">
+      <div class="tabsbar"><button id="bDex" class="on">Pokédex</button><button id="bEquipo">Equipo</button><button id="bCajas">Cajas</button></div>
+      <div class="busca" id="busDex"><input id="buscador" type="search" placeholder="Buscar Pokémon por nombre o número…"></div>
+      <div class="cuerpo" id="gridIzq"></div>
+    </section>
+
+    <section class="col" id="editor"></section>
+
+    <section class="col">
+      <div class="tabsbar"><button id="tAtaques" class="on"><span class="ti"></span>Ataques</button><button id="tObjetos"><span class="ti"></span>Objetos</button></div>
+      <div class="cuerpo" id="pAtaques">
+        <input id="fMoves" type="search" placeholder="Filtrar ataques…">
+        <div class="filtros" id="filtrosMoves"></div>
+        <div class="lista" id="listaMoves"></div>
+      </div>
+      <div class="cuerpo" id="pObjetos" hidden>
+        <input id="fItems" type="search" placeholder="Filtrar objetos…">
+        <div class="lista chica" id="listaItems"></div>
+      </div>
+    </section>
+  </main>
+</div>
+<div id="aviso"></div>
+<div id="carga" hidden></div>
+
+<script>
+const BASE = 'https://raw.githubusercontent.com/PokeAPI/pokeapi/master/data/v2/csv/';
+const SPR = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/';
+const ES = '7'; // idioma español en PokéAPI
+
+const TIPOS = {1:['Normal','#a8a77a'],2:['Lucha','#c22e28'],3:['Volador','#a98ff3'],4:['Veneno','#a33ea1'],5:['Tierra','#b8975a'],6:['Roca','#b6a136'],7:['Bicho','#a6b91a'],8:['Fantasma','#735797'],9:['Acero','#8a8aa8'],10:['Fuego','#ee8130'],11:['Agua','#6390f0'],12:['Planta','#52a83a'],13:['Eléctrico','#d9a60f'],14:['Psíquico','#f95587'],15:['Hielo','#4fb5b0'],16:['Dragón','#6f35fc'],17:['Siniestro','#705746'],18:['Hada','#d685ad']};
+const CLASES = {1:'Estado',2:'Físico',3:'Especial'};
+const STATS = ['PS','Ataque','Defensa','At. Esp.','Def. Esp.','Velocidad'];
+const IDX = {Atq:1, Def:2, 'At.Esp':3, 'Df.Esp':4, Vel:5};
+
+// objetos que modifican stats: índice de stat -> multiplicador (solo = ids de especie a los que afecta)
+const MULT = {
+  'choice-band':{1:1.5}, 'choice-specs':{3:1.5}, 'choice-scarf':{5:1.5}, 'assault-vest':{4:1.5},
+  'eviolite':{2:1.5, 4:1.5, evo:true},
+  'light-ball':{1:2, 3:2, solo:[25]}, 'thick-club':{1:2, solo:[104,105]},
+  'deep-sea-tooth':{3:2, solo:[366]}, 'deep-sea-scale':{4:2, solo:[366]},
+};
+// objetos que cambian de forma además de las megapiedras (identificador de objeto -> forma)
+const EXTRA = {'red-orb':'groudon-primal','blue-orb':'kyogre-primal','griseous-orb':'giratina-origin','adamant-crystal':'dialga-origin','lustrous-globe':'palkia-origin','rusted-sword':'zacian-crowned','rusted-shield':'zamazenta-crowned'};
+
+// 25 naturalezas en el orden oficial: [nombre, sube, baja]
+const NAT = [
+  ['Fuerte'],['Huraña','Atq','Def'],['Audaz','Atq','Vel'],['Firme','Atq','At.Esp'],['Pícara','Atq','Df.Esp'],
+  ['Osada','Def','Atq'],['Dócil'],['Plácida','Def','Vel'],['Agitada','Def','At.Esp'],['Floja','Def','Df.Esp'],
+  ['Miedosa','Vel','Atq'],['Activa','Vel','Def'],['Seria'],['Alegre','Vel','At.Esp'],['Ingenua','Vel','Df.Esp'],
+  ['Modesta','At.Esp','Atq'],['Afable','At.Esp','Def'],['Mansa','At.Esp','Vel'],['Tímida'],['Alocada','At.Esp','Df.Esp'],
+  ['Serena','Df.Esp','Atq'],['Amable','Df.Esp','Def'],['Grosera','Df.Esp','Vel'],['Cauta','Df.Esp','At.Esp'],['Rara']
+].map(([n,a,b]) => ({n, up: a ? IDX[a] : -1, down: b ? IDX[b] : -1, txt: a ? `${n} (+${a}, -${b})` : `${n} (neutra)`}));
+
+// ---------- juegos: [nombre, generación, color1, color2, consola, nº máximo de Pokédex, extras] ----------
+const ROMANO = ['','I','II','III','IV','V','VI','VII','VIII','IX','Z-A'];
+const CONSOLAS_N = {gb:'Game Boy', gbc:'Game Boy Color', gba:'Game Boy Advance', ds:'Nintendo DS', tds:'Nintendo 3DS', sw:'Nintendo Switch'};
+const JUEGOS = [
+  ['Rojo',1,'#e23b3b','#8a1212','gb',151], ['Azul',1,'#3b6be2','#12318a','gb',151], ['Amarillo',1,'#f2d23a','#a9860c','gb',151],
+  ['Oro',2,'#e8b53a','#9a6a0c','gbc',251], ['Plata',2,'#c4cad6','#7a8294','gbc',251], ['Cristal',2,'#58d6d0','#1b7f86','gbc',251],
+  ['Rubí',3,'#d43a3a','#7a1010','gba',386], ['Zafiro',3,'#3a6fd4','#10307a','gba',386], ['Esmeralda',3,'#3ad47a','#107a3a','gba',386],
+  ['Rojo Fuego',3,'#ee6a2e','#9a3a0c','gba',386], ['Verde Hoja',3,'#7ac43a','#3a7a10','gba',386],
+  ['Diamante',4,'#8fb8e8','#4a6fa8','ds',493], ['Perla',4,'#f0b8d0','#b0688a','ds',493], ['Platino',4,'#9aa0aa','#505662','ds',493],
+  ['HeartGold',4,'#e8c04a','#9a7010','ds',493], ['SoulSilver',4,'#c4c8d4','#707890','ds',493],
+  ['Negro',5,'#3a3a44','#101018','ds',649], ['Blanco',5,'#f0f0f4','#a8a8b8','ds',649], ['Negro 2',5,'#4a4a5a','#14141c','ds',649], ['Blanco 2',5,'#e4e4ee','#9898aa','ds',649],
+  ['X',6,'#3a6fd4','#10307a','tds',721], ['Y',6,'#d43a5a','#7a1030','tds',721], ['Rubí Omega',6,'#c42e2e','#6a0e0e','tds',721], ['Zafiro Alfa',6,'#2e5ac4','#0e2a6a','tds',721],
+  ['Sol',7,'#f09a2e','#a85a0c','tds',802], ['Luna',7,'#5a5ad4','#2a2a8a','tds',802], ['Ultrasol',7,'#f0762e','#a8400c','tds',807], ['Ultraluna',7,'#6a4ad4','#321a8a','tds',807],
+  ["Let's Go Pikachu",7,'#f2d23a','#a9860c','sw',151,[808,809]], ["Let's Go Eevee",7,'#b9783a','#6a3e12','sw',151,[808,809]],
+  ['Espada',8,'#3a9ad4','#10508a','sw',898], ['Escudo',8,'#d43a5a','#7a1030','sw',898],
+  ['Diamante Brillante',8,'#7aaae8','#3a5aa8','sw',493], ['Perla Reluciente',8,'#e8a0c0','#a8507a','sw',493], ['Leyendas Arceus',8,'#8a9a6a','#3a4a2a','sw',905],
+  ['Escarlata',9,'#e23a3a','#8a1212','sw',1025], ['Púrpura',9,'#8a3ad4','#4a1088','sw',1025],
+].map(([n,g,c1,c2,c,max,extra]) => ({n,g,c1,c2,c,max,extra:extra||[]}));
+// Pokémon de portada de cada juego (id de PokeAPI; 100xx = formas)
+const PORTADA = {'Rojo':6,'Azul':9,'Amarillo':25,'Oro':250,'Plata':249,'Cristal':245,'Rubí':383,'Zafiro':382,'Esmeralda':384,'Rojo Fuego':6,'Verde Hoja':3,
+  'Diamante':483,'Perla':484,'Platino':487,'HeartGold':250,'SoulSilver':249,'Negro':644,'Blanco':643,'Negro 2':10022,'Blanco 2':10023,'X':716,'Y':717,
+  'Rubí Omega':10078,'Zafiro Alfa':10077,'Sol':791,'Luna':792,'Ultrasol':10155,'Ultraluna':10156,"Let's Go Pikachu":25,"Let's Go Eevee":133,'Espada':888,'Escudo':889,
+  'Diamante Brillante':483,'Perla Reluciente':484,'Leyendas Arceus':493,'Escarlata':1007,'Púrpura':1008,'Leyendas Z-A':718};
+const FORMA_CART = {gb:'gb', gbc:'gb', gba:'gba', ds:'ds', tds:'ds', sw:'sw'};
+
+const $ = id => document.getElementById(id);
+const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const aviso = t => { const a=$('aviso'); a.textContent=t; a.classList.add('ver'); clearTimeout(aviso.t); aviso.t=setTimeout(()=>a.classList.remove('ver'),2200); };
+
+// ---------- datos de PokéAPI ----------
+function csv(texto) {
+  const filas = [];
+  for (const linea of texto.split('\n').slice(1)) {
+    if (!linea) continue;
+    const f = []; let cur = '', q = false;
+    for (const ch of linea.replace('\r','')) {
+      if (ch === '"') q = !q; else if (ch === ',' && !q) { f.push(cur); cur=''; } else cur += ch;
+    }
+    f.push(cur); filas.push(f);
+  }
+  return filas;
+}
+async function bajar(n) { const r = await fetch(BASE + n + '.csv'); if (!r.ok) throw new Error(n); return csv(await r.text()); }
+
+async function cargarDatos() {
+  Object.keys(localStorage).filter(k => /^pk_datos_v\d+$/.test(k) && k !== 'pk_datos_v15').forEach(k => localStorage.removeItem(k));
+  const cache = localStorage.getItem('pk_datos_v15');
+  if (cache) { try { return JSON.parse(cache); } catch {} }
+  const [sp, mn, mv, itn, it, fl, cat, st, pt, pa, an, pk, spc, igi, tpp, pap, abl, chg] = await Promise.all(['pokemon_species_names','move_names','moves','item_names','items','item_flag_map','item_categories','pokemon_stats','pokemon_types','pokemon_abilities','ability_names','pokemon','pokemon_species','item_game_indices','pokemon_types_past','pokemon_abilities_past','abilities','move_changelog'].map(bajar));
+  const nombres = filas => Object.fromEntries(filas.filter(f => f[1]===ES).map(f => [f[0], f[2]]));
+  const spN = nombres(sp), mnN = nombres(mn), itN = nombres(itn), anN = nombres(an);
+  const pasivos = new Set(fl.filter(f => f[1]==='6' || f[1]==='7').map(f => f[0]));
+  const catN = Object.fromEntries(cat.map(f => [f[0], f[2]]));
+  // objetos que se llevan equipados pero PokéAPI no marca como tales: de evolución por intercambio, Zumo de Baya, orbes y máscara de Ogerpon
+  const EXTRA_OBJ = new Set(['berry-juice','protector','electirizer','magmarizer','dubious-disc','reaper-cloth','up-grade','dragon-scale','prism-scale','sachet','whipped-dream','oval-stone','cleanse-tag','pure-incense','leaders-crest','teal-mask','red-orb','blue-orb']);
+  // ataques que no se pueden aprender: Combate (165), movimientos Z, movimientos Dinamax y Maxiguardia
+  const rango = (a, b) => Array.from({length: b - a + 1}, (_, i) => a + i);
+  const NO_ENSENABLES = new Set([165, 719, 743, ...rango(622, 658), ...rango(695, 703), ...rango(723, 728), ...rango(757, 774)]);
+  const CATS = new Set(['held-items','choice','type-enhancement','type-protection','plates','in-a-pinch','picky-healing','scarves','bad-held-items','species-specific','mega-stones','z-crystals','memories','jewels','effort-training']);
+
+  // formas (Mega, Primigenia, Origen, Suprema) ligadas a un objeto
+  const spI = Object.fromEntries(spc.map(f => [f[0], f[1]]));
+  const preevo = [...new Set(spc.map(f => f[3]).filter(Boolean).map(Number))];
+  const porIdent = Object.fromEntries(pk.map(f => [f[1], f]));
+  const megaPorEsp = {};
+  pk.filter(f => /-mega(-[xyz])?$/.test(f[1])).forEach(f => (megaPorEsp[spI[f[2]]] ||= []).push(f));
+  const lcp = (a,b) => { let n=0; while (n<a.length && a[n]===b[n]) n++; return n; };
+  const formas = {}; // id de objeto -> id de la forma
+  for (const f of it) {
+    if (catN[f[2]]==='mega-stones') {
+      const suf = (f[1].match(/-([xyz])$/)||[])[1], base = f[1].replace(/-[xyz]$/,'');
+      const sc = Object.keys(megaPorEsp).map(e => [lcp(base,e), e]).sort((a,b) => b[0]-a[0]);
+      if (!sc.length || sc[0][0] < 4 || (sc[1] && sc[1][0]===sc[0][0])) continue;
+      const fs = megaPorEsp[sc[0][1]];
+      const forma = suf ? fs.find(x => x[1].endsWith('-mega-'+suf)) : (fs.find(x => x[1].endsWith('-mega')) || fs[0]);
+      if (forma) formas[f[0]] = +forma[0];
+    } else if (EXTRA[f[1]] && porIdent[EXTRA[f[1]]]) formas[f[0]] = +porIdent[EXTRA[f[1]]][0];
+  }
+  const idsForma = new Set(Object.values(formas));
+  const formaDe = {}, formN = {};
+  for (const f of pk) if (idsForma.has(+f[0])) {
+    formaDe[f[0]] = +f[2];
+    const e = spI[f[2]], nombre = spN[f[2]], resto = f[1].slice(e.length+1);
+    formN[f[0]] = resto.includes('mega') ? 'Mega-' + nombre + (resto.split('-').filter(t => t!=='mega').map(t => ' ' + (t.length===1 ? t.toUpperCase() : t)).join(''))
+      : resto.includes('primal') ? nombre + ' Primigenio' : resto.includes('origin') ? nombre + ' Forma Origen' : nombre + ' Forma Suprema';
+  }
+
+  // formas regionales (Alola, Galar, Hisui, Paldea) como Pokémon elegibles
+  const REG = /^(.+?)-(alola|galar|hisui|paldea)(?:-(combat|blaze|aqua)-breed)?$/, DE = {alola:'Alola', galar:'Galar', hisui:'Hisui', paldea:'Paldea'}, RAZA = {combat:'Combatiente', blaze:'Ardiente', aqua:'Acuática'};
+  const regionales = pk.filter(f => +f[0] > 10000 && REG.test(f[1]) && !/totem|zen|starter/.test(f[1])).map(f => {
+    const m = f[1].match(REG);
+    return {id:+f[0], e:+f[2], r:m[2], n:`${spN[f[2]]} de ${DE[m[2]]}${m[3] ? ' (raza ' + RAZA[m[3]] + ')' : ''}`};
+  });
+  // formas alternativas permanentes con otras estadísticas o tipos: id -> [generación en que aparecen, nombre]
+  const ALT = {10001:[3,'Ataque'],10002:[3,'Defensa'],10003:[3,'Velocidad'],10004:[4,'Planta Arena'],10005:[4,'Planta Basura'],10006:[4,'Forma Cielo'],
+    10008:[4,'Calor'],10009:[4,'Lavado'],10010:[4,'Frío'],10011:[4,'Ventilador'],10012:[4,'Corte'],10019:[5,'Forma Tótem'],10020:[5,'Forma Tótem'],10021:[5,'Forma Tótem'],
+    10022:[5,'Negro'],10023:[5,'Blanco'],10025:[6,'Hembra'],10027:[6,'Pequeño'],10028:[6,'Grande'],10029:[6,'Supertamaño'],10030:[6,'Pequeño'],10031:[6,'Grande'],10032:[6,'Supertamaño'],
+    10061:[6,'Flor Eterna'],10086:[6,'Desatado'],10181:[7,'Forma 10%'],10123:[7,'Estilo Animado'],10124:[7,'Estilo Plácido'],10125:[7,'Estilo Apasionado'],
+    10126:[7,'Forma Nocturna'],10152:[7,'Forma Crepuscular'],10147:[7,'Forma Original'],10155:[7,'Melena Crepuscular'],10156:[7,'Alas del Alba'],
+    10177:[8,'Forma de Galar'],10184:[8,'Forma Grave'],10186:[8,'Hembra'],10191:[8,'Forma Brusca'],10193:[8,'Jinete Glacial'],10194:[8,'Jinete Espectral'],
+    10247:[8,'Raya Blanca'],10248:[8,'Hembra'],10249:[8,'Forma Tótem'],10254:[9,'Hembra'],10272:[9,'Luna Sangrienta'],10273:[9,'Máscara Fuente'],10274:[9,'Máscara Horno'],10275:[9,'Máscara Cimiento']};
+  const alternativas = pk.filter(f => ALT[f[0]]).map(f => ({id:+f[0], e:+f[2], g:ALT[f[0]][0], n:`${spN[f[2]]} (${ALT[f[0]][1]})`}));
+  const idsReg = new Set([...regionales, ...alternativas].map(p => p.id));
+  const quiero = id => +id <= 1025 || idsForma.has(+id) || idsReg.has(+id);
+  const stats = {}, tipos = {}, hab = {};
+  for (const f of st) if (quiero(f[0])) (stats[f[0]] ||= [0,0,0,0,0,0])[f[1]-1] = +f[2];
+  for (const f of pt) if (quiero(f[0])) (tipos[f[0]] ||= [])[f[2]-1] = +f[1];
+  for (const f of pa.slice().sort((a,b) => a[3]-b[3])) if (quiero(f[0]) && anN[f[1]]) (hab[f[0]] ||= []).push([+f[1], +f[2], +f[3]]);
+  const abN = {}; for (const [id,n] of Object.entries(anN)) if (+id < 10000) abN[id] = n;
+  const abG = Object.fromEntries(abl.map(f => [f[0], +f[2]]));
+  // tipos y habilidades de generaciones anteriores: [generación hasta la que valen, datos]
+  const tipoPast = {}; for (const f of tpp) ((tipoPast[f[0]] ||= {})[f[1]] ||= [])[f[3]-1] = +f[2];
+  for (const k in tipoPast) tipoPast[k] = Object.entries(tipoPast[k]).map(([g, t]) => [+g, t]).sort((a,b) => a[0]-b[0]);
+  const habPast = {}; for (const f of pap) ((habPast[f[0]] ||= {})[f[1]] ||= []).push([+f[4], f[2] ? +f[2] : 0, +f[3]]);
+  for (const k in habPast) habPast[k] = Object.entries(habPast[k]).map(([g, r]) => [+g, r]);
+  // valores antiguos de los ataques: [grupo de versiones en el que cambió, campos anteriores]
+  const hist = {}; for (const f of chg) { const c = {}; if (f[2]) c.t = +f[2]; if (f[3]) c.p = f[3]; if (f[4]) c.pp = f[4]; if (f[5]) c.pr = f[5]; (hist[f[0]] ||= []).push([+f[1], c]); }
+  for (const k in hist) hist[k].sort((a,b) => a[0]-b[0]);
+  const gMin = {}; for (const f of igi) gMin[f[0]] = Math.min(gMin[f[0]] || 99, +f[1]);
+
+  const d = {
+    pokemon: [...Object.entries(spN).map(([id,n]) => ({id:+id, n})).filter(p => p.id <= 1025), ...regionales, ...alternativas].sort((a,b) => (a.e||a.id)-(b.e||b.id) || a.id-b.id),
+    moves: mv.filter(f => +f[0] < 10000 && mnN[f[0]] && !NO_ENSENABLES.has(+f[0])).map(f => ({id:+f[0], n:mnN[f[0]], t:+f[3], p:f[4]||'-', pp:f[5], pr:f[6]||'-', c:+f[9], g:+f[2], h:hist[f[0]]})),
+    stats, tipos, hab, abN, abG, tipoPast, habPast, formas, formaDe, formN, preevo,
+    items: it.filter(f => (pasivos.has(f[0]) || CATS.has(catN[f[2]]) || EXTRA_OBJ.has(f[1]) || formas[f[0]]!==undefined) && itN[f[0]]).map(f => ({id:+f[0], n:itN[f[0]], s:f[1], g:gMin[f[0]] || 9, k:catN[f[2]]})).sort((a,b) => a.n.localeCompare(b.n,'es')),
+  };
+  try { localStorage.setItem('pk_datos_v15', JSON.stringify(d)); } catch {}
+  return d;
+}
+
+// ============================================================
+//  PANTALLA DE INICIO: registro + cartuchos + animación
+// ============================================================
+let perfil = {nombre:'', juego:'Rojo'};
+try { Object.assign(perfil, JSON.parse(localStorage.getItem('pk_perfil')) || {}); } catch {}
+let gi = Math.max(0, JUEGOS.findIndex(j => j.n===perfil.juego));
+const promesaDatos = cargarDatos();           // empieza a descargar mientras eliges
+promesaDatos.catch(e => console.error(e));
+let J = JUEGOS[gi];                           // juego en uso
+let animando = false;
+
+const slug = n => norm(n).replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const cartHTML = j => j.img ? `<div class="cart foto ${FORMA_CART[j.c]}"><img src="${j.img}" alt="${esc(j.n)}"></div>` : `<div class="cart ${FORMA_CART[j.c]}" style="--c1:${j.c1};--c2:${j.c2}"><div class="shell"></div><div class="label">${PORTADA[j.n] ? `<img class="ico" src="${SPR}pokemon/other/official-artwork/${PORTADA[j.n]}.png" alt="${esc(j.n)}" title="${esc(j.n)}" onerror="if(this.dataset.f)this.replaceWith(this.alt);else{this.dataset.f=1;this.src='${SPR}pokemon/${PORTADA[j.n]}.png'}">` : `<span class="ttl">${esc(j.n)}</span>`}<i class="${j.n.length > 11 ? 'l' : ''}">${esc(j.n)}</i></div><div class="pins"></div></div>`;
+function pintarInicio() {
+  $('gens').innerHTML = ROMANO.slice(1).map((r,k) => !JUEGOS.some(j => j.g===k+1) ? '' : `<button data-g="${k+1}" class="${JUEGOS[gi].g===k+1?'on':''}">${r==='Z-A'?'Z-A':'Gen '+r}</button>`).join('');
+  const N = JUEGOS.length;
+  $('slotsC').innerHTML = [-2,-1,0,1,2].map(o => {
+    const i = (gi+o+N)%N, j = JUEGOS[i];
+    return `<div class="sl ${o===0?'act':Math.abs(o)===2?'lejos':''}" data-i="${i}" title="${esc(j.n)}"><div class="flota">${cartHTML(j)}</div></div>`;
+  }).join('');
+  const j = JUEGOS[gi];
+  pintarContinuar(); pintarAvisoCopia(); if (!$('gridC').hidden) pintarTodos();
+  $('infoJuego').innerHTML = `<b>Pokémon ${esc(j.n)}</b><span>Generación ${ROMANO[j.g]} · ${CONSOLAS_N[j.c]} · ${gi+1} / ${N}</span>`;
+}
+// ---------- runs guardadas, cuadrícula de cartuchos, importar, estado de los datos ----------
+let continuarId = null;   // run elegida en "Continuar": entrar() la abre en vez de buscar por nombre
+const conDatos = ([, p]) => p.equipo?.some(Boolean) || p.cajas?.flat().some(Boolean);   // la misma regla que la lista «Continuar partida»
+function runsGuardadas() { try { const s = JSON.parse(localStorage.getItem('pk_partidas_v2')); return s && s.partidas ? Object.entries(s.partidas) : []; } catch { return []; } }
+function pintarContinuar() {
+  const runs = runsGuardadas().filter(conDatos);
+  $('continuar').innerHTML = runs.length ? `<h3>Continuar partida</h3>` + runs.map(([id, p]) => `<div class="run"><div class="eq">${p.equipo.filter(Boolean).map(m => `<img src="${pokeImg(m.id)}" alt="">`).join('')}</div><div class="nm"><b>${esc(p.n)}</b><small>${p.equipo.filter(Boolean).length}/6 en el equipo · ${p.cajas.flat().filter(Boolean).length} en cajas</small></div><button class="primary" data-run="${esc(id)}">Continuar</button><button class="peligro" data-del="${esc(id)}" title="Eliminar esta partida">🗑 Eliminar</button></div>`).join('') : '';
+}
+$('continuar').onclick = async ev => {
+  const d = ev.target.closest('[data-del]');
+  if (d) {
+    const p = runsGuardadas().find(([id]) => id === d.dataset.del)?.[1]; if (!p) return;
+    if (!await Dialogo.confirmar(`¿Eliminar la partida "${p.n}" con todo su equipo y cajas?
+No se puede deshacer.`, {titulo:'Eliminar partida', ok:'Eliminar', peligro:true})) return;
+    S ||= cargarPartidas(); delete S.partidas[d.dataset.del];
+    const ids = Object.keys(S.partidas);
+    if (!ids.length) S.partidas.p1 = nuevaPartida('Run 1'), ids.push('p1');
+    if (!S.partidas[S.act]) S.act = ids[0];
+    guardar(); deshacer.length = 0; return pintarInicio();
+  }
+  const b = ev.target.closest('[data-run]'); if (!b || animando) return;
+  const p = runsGuardadas().find(([id]) => id === b.dataset.run)?.[1]; if (!p) return;
+  const [nom, jn] = p.n.split(' · '), k = JUEGOS.findIndex(j => j.n === (jn || '').replace(/ \(\d+\)$/, ''));
+  if (k >= 0) gi = k;
+  $('inNombre').value = (k >= 0 && nom) || perfil.nombre || 'Jugador';
+  continuarId = b.dataset.run; pintarInicio(); insertar();
+};
+function pintarTodos() {
+  $('gridC').innerHTML = JUEGOS.map((j, i) => cartHTML(j).replace('class="cart ', `data-i="${i}" title="${esc(j.n)}" class="cart ${i === gi ? 'sel ' : ''}`)).join('');
+}
+// ---------- copia de seguridad: todas las runs en un archivo ----------
+function pintarAvisoCopia() {
+  const t = +localStorage.getItem('pk_copia') || 0, hay = runsGuardadas().filter(conDatos).length, dias = Math.floor((Date.now() - t) / 864e5), a = $('avisoCopia');
+  $('bCopia').disabled = !hay; $('bCopia').title = hay ? 'Descarga todas tus runs en un archivo' : 'Aún no tienes ninguna run guardada';
+  a.className = 'aviso-copia' + (hay && (!t || dias >= 7) ? ' mal' : '');
+  a.textContent = !hay ? '' : !t ? '⚠ Tus runs solo están en este navegador y todavía no tienes copia de seguridad.' : dias >= 7 ? `⚠ Tu última copia de seguridad es de hace ${dias} días.` : `Última copia de seguridad: ${dias ? 'hace ' + dias + ' días' : 'hoy'}.`;
+}
+$('bCopia').onclick = () => {
+  const runs = runsGuardadas().filter(conDatos); if (!runs.length) return aviso('No hay runs que guardar');
+  const act = (S || JSON.parse(localStorage.getItem('pk_partidas_v2'))).act, [, ref] = runs.find(([id]) => id === act) || runs[0];
+  const datos = JSON.stringify({act: runs.some(([id]) => id === act) ? act : runs[0][0], partidas: Object.fromEntries((S ? Object.entries(S.partidas).filter(conDatos) : runs))});   // nombre de la run activa (o la primera) + fecha
+  const nom = ref.n.replace(/[\/:*?"<>|]+/g, '').replace(/\s+/g, ' ').trim() || 'run';
+  const a = document.createElement('a'); a.download = `${nom}${runs.length > 1 ? ` y ${runs.length - 1} más` : ''} - ${new Date().toLocaleDateString('sv-SE')}.json`;
+  a.href = URL.createObjectURL(new Blob([JSON.stringify({randomlabCopia:1, datos:JSON.parse(datos)})], {type:'application/json'})); a.click(); URL.revokeObjectURL(a.href);
+  localStorage.setItem('pk_copia', Date.now()); pintarAvisoCopia();
+};
+$('bRestaurar').onclick = () => $('fCopia').click();
+$('fCopia').onchange = async ev => {
+  const arch = ev.target.files[0]; ev.target.value = ''; if (!arch) return;
+  let d; try { d = JSON.parse(await arch.text()).datos; if (!d || !d.partidas || !d.partidas[d.act]) throw 0; } catch { return Dialogo.confirmar('Ese archivo no es una copia de seguridad de RandomLab.', {titulo:'Archivo no válido', ok:'Entendido'}); }
+  const n = Object.keys(d.partidas).length;
+  if (!await Dialogo.confirmar(`Se van a sustituir todas tus runs actuales por las ${n} del archivo.\nEsto no se puede deshacer.`, {titulo:'Restaurar copia', ok:'Restaurar', peligro:true})) return;
+  S = d; ultimo = JSON.stringify(S); deshacer.length = 0; localStorage.setItem('pk_partidas_v2', ultimo); pintarInicio(); pintarAvisoCopia(); aviso('Copia restaurada');
+};
+$('bTodos').onclick = () => { const g = $('gridC'); g.hidden = !g.hidden; $('bTodos').textContent = g.hidden ? '▦ Ver todos los cartuchos' : '✕ Cerrar'; if (!g.hidden) pintarTodos(); };
+$('gridC').onclick = ev => { const c = ev.target.closest('[data-i]'); if (c) { irA(+c.dataset.i); $('gridC').hidden = true; $('bTodos').textContent = '▦ Ver todos los cartuchos'; } };
+const hayDatos = $('estadoDatos');
+hayDatos.textContent = 'Cargando datos de la Pokédex…'; hayDatos.hidden = false;
+promesaDatos.then(() => { hayDatos.hidden = true; }, () => { hayDatos.classList.add('mal'); hayDatos.textContent = 'No se pudieron cargar los datos. Comprueba tu conexión y recarga la página.'; });
+if (!perfil.nombre) $('inNombre').focus();
+
+let tMus;
+const musicaInicio = () => { clearTimeout(tMus); tMus = setTimeout(() => Musica.iniciar(0), 250); };
+const irA = i => { gi = (i+JUEGOS.length)%JUEGOS.length; pintarInicio(); musicaInicio(); };
+// al recargar el navegador no deja sonar hasta que hay un gesto: se intenta ya y se reintenta con el primer click o tecla
+musicaInicio();
+['pointerdown', 'keydown'].forEach(t => document.addEventListener(t, function f() { document.removeEventListener(t, f, true); if (!$('inicio').hidden) musicaInicio(); }, true));
+$('bIzq').onclick = () => irA(gi-1);
+$('bDer').onclick = () => irA(gi+1);
+$('gens').onclick = ev => { const b = ev.target.closest('[data-g]'); if (b) irA(JUEGOS.findIndex(j => j.g===+b.dataset.g)); };
+$('slotsC').onclick = ev => { const s = ev.target.closest('.sl'); if (s && !s.classList.contains('act')) irA(+s.dataset.i); };
+$('carrusel').onmousemove = ev => { // el cartucho se inclina siguiendo el ratón
+  const c = document.querySelector('.sl.act .cart'); if (!c) return;
+  const r = c.getBoundingClientRect(), x = (ev.clientX - (r.left + r.width/2)) / 220, y = (ev.clientY - (r.top + r.height/2)) / 160;
+  c.style.setProperty('--ry', Math.max(-1,Math.min(1,x))*28 + 'deg'); c.style.setProperty('--rx', Math.max(-1,Math.min(1,y))*-22 + 'deg');
+};
+$('carrusel').onmouseleave = () => { const c = document.querySelector('.sl.act .cart'); if (c) { c.style.setProperty('--rx','0deg'); c.style.setProperty('--ry','0deg'); } };
+document.addEventListener('keydown', ev => {
+  if ($('inicio').hidden || animando || document.activeElement === $('inNombre')) return;
+  if (ev.key==='ArrowLeft') irA(gi-1); else if (ev.key==='ArrowRight') irA(gi+1); else if (ev.key==='Enter') $('bInsertar').click();
+});
+$('inNombre').addEventListener('keydown', ev => { if (ev.key==='Enter') $('bInsertar').click(); });
+$('inNombre').value = perfil.nombre;
+
+// consolas genéricas dibujadas en SVG (ranura de cartucho arriba)
+const msgSVG = (x,y,lineas) => `<text class="msg" x="${x}" y="${y}" text-anchor="middle" font-size="15">${lineas.map((l,i) => `<tspan x="${x}" dy="${i?18:0}">${esc(l)}</tspan>`).join('')}</text>`;
+function consolaSVG(tipo, nombre) {
+  const L = [`¡Hola,`, nombre + '!'];
+  if (tipo==='gb' || tipo==='gbc') {
+    const c = tipo==='gb' ? '#c9c9cf' : '#6a4fd6';
+    return {h:340, pantalla: tipo==='gb' ? '#9bbc0f' : '#cfe6a8', tx:'#0f380f', svg:`<svg viewBox="0 0 240 380">
+      <rect x="8" y="8" width="224" height="364" rx="16" fill="${c}" stroke="#000a" stroke-width="3"/><rect x="8" y="8" width="224" height="28" rx="12" fill="#0003"/>
+      <rect x="70" y="14" width="100" height="10" rx="3" fill="#000b"/>
+      <rect x="28" y="50" width="184" height="150" rx="12" fill="#55566a"/><rect x="54" y="66" width="132" height="118" class="scr"/>${msgSVG(120,118,L)}
+      <circle cx="40" cy="120" r="4" fill="#d33"/>
+      <rect x="36" y="238" width="64" height="20" rx="4" fill="#222"/><rect x="58" y="216" width="20" height="64" rx="4" fill="#222"/>
+      <circle cx="176" cy="254" r="15" fill="#a3254f"/><circle cx="206" cy="234" r="15" fill="#a3254f"/>
+      <rect x="66" y="316" width="34" height="9" rx="4" fill="#777" transform="rotate(-20 83 320)"/><rect x="110" y="316" width="34" height="9" rx="4" fill="#777" transform="rotate(-20 127 320)"/>
+      <g stroke="#0005" stroke-width="3"><path d="M170 310l18-8M178 322l18-8M186 334l18-8"/></g></svg>`};
+  }
+  if (tipo==='gba') return {h:220, pantalla:'#b8d8f0', tx:'#14284a', svg:`<svg viewBox="0 0 400 240">
+      <rect x="8" y="8" width="384" height="224" rx="40" fill="#5a3fb5" stroke="#000a" stroke-width="3"/><rect x="130" y="14" width="140" height="10" rx="3" fill="#000b"/>
+      <rect x="100" y="42" width="200" height="146" rx="10" fill="#2a2a3a"/><rect x="116" y="58" width="168" height="114" class="scr"/>${msgSVG(200,108,L)}
+      <rect x="30" y="110" width="58" height="18" rx="4" fill="#1a1a28"/><rect x="50" y="90" width="18" height="58" rx="4" fill="#1a1a28"/>
+      <circle cx="338" cy="122" r="14" fill="#c8c8d8"/><circle cx="366" cy="102" r="14" fill="#c8c8d8"/></svg>`};
+  if (tipo==='ds' || tipo==='tds') {
+    const c = tipo==='ds' ? '#cfd4dc' : '#d12a3a';
+    return {h:380, pantalla:'#e8f0ff', tx:'#14284a', svg:`<svg viewBox="0 0 260 440">
+      <rect x="8" y="8" width="244" height="424" rx="22" fill="${c}" stroke="#000a" stroke-width="3"/><rect x="80" y="14" width="100" height="9" rx="3" fill="#000b"/>
+      <rect x="24" y="36" width="212" height="140" rx="8" fill="#23232e"/><rect x="38" y="48" width="184" height="116" class="scr"/>${msgSVG(130,98,L)}
+      <rect x="8" y="190" width="244" height="12" fill="#0004"/>
+      <rect x="62" y="214" width="136" height="106" rx="8" fill="#23232e"/><rect x="70" y="222" width="120" height="90" class="scr"/>
+      <rect x="18" y="258" width="32" height="14" rx="3" fill="#222"/><rect x="27" y="249" width="14" height="32" rx="3" fill="#222"/>
+      <circle cx="226" cy="242" r="8" fill="#eee"/><circle cx="226" cy="276" r="8" fill="#eee"/><circle cx="209" cy="259" r="8" fill="#eee"/><circle cx="243" cy="259" r="8" fill="#eee"/>
+      <rect x="70" y="352" width="40" height="9" rx="4" fill="#0005"/><rect x="150" y="352" width="40" height="9" rx="4" fill="#0005"/></svg>`};
+  }
+  return {h:230, pantalla:'#10162a', tx:'#ffffff', svg:`<svg viewBox="0 0 440 260">
+      <rect x="6" y="14" width="64" height="232" rx="26" fill="#2fb7e0" stroke="#000a" stroke-width="3"/><rect x="370" y="14" width="64" height="232" rx="26" fill="#ee4651" stroke="#000a" stroke-width="3"/>
+      <rect x="60" y="14" width="320" height="232" rx="6" fill="#1d1f27" stroke="#000a" stroke-width="3"/><rect x="170" y="8" width="100" height="9" rx="3" fill="#000b"/>
+      <rect x="76" y="32" width="288" height="196" rx="3" class="scr"/>${msgSVG(220,126,L)}
+      <circle cx="38" cy="76" r="17" fill="#222"/><circle cx="402" cy="166" r="17" fill="#222"/>
+      <circle cx="402" cy="76" r="6" fill="#eee"/><circle cx="402" cy="106" r="6" fill="#eee"/><circle cx="388" cy="91" r="6" fill="#eee"/><circle cx="416" cy="91" r="6" fill="#eee"/></svg>`};
+}
+
+async function insertar() {
+  const nombre = $('inNombre').value.trim();
+  if (!nombre) { $('inNombre').focus(); $('inNombre').style.borderColor = '#ff6b6e'; return aviso('Escribe el nombre de tu personaje'); }
+  $('inNombre').style.borderColor = '';
+  if (animando) return; animando = true;
+  const j = JUEGOS[gi]; perfil = {nombre, juego:j.n}; localStorage.setItem('pk_perfil', JSON.stringify(perfil));
+  const con = consolaSVG(j.c, nombre);
+  const esc_ = $('escena'), conso = $('conso'), cv = $('cartvuelo');
+  conso.className = 'conso'; conso.style.setProperty('--pantalla', con.pantalla); conso.style.setProperty('--tx', con.tx);
+  conso.innerHTML = con.svg; conso.querySelector('svg').style.height = con.h + 'px';
+  cv.innerHTML = cartHTML(j);
+  const cartH = cv.firstChild.offsetHeight || 120;
+  cv.style.transition = 'none'; cv.style.transform = `translate(-50%, ${-cartH-10}px)`;
+  esc_.classList.remove('sale'); esc_.hidden = false; $('inicio').hidden = true; $('noche').hidden = false; document.body.classList.add('noche');
+  let omitido = false; $('bOmitir').onclick = () => { omitido = true; };
+  const esperar = ms => new Promise(r => { const t = setInterval(() => { if (omitido) { clearInterval(t); r(); } }, 30); setTimeout(() => { clearInterval(t); r(); }, ms); });
+  await esperar(500);
+  if (!omitido) { cv.style.transition = 'transform 1.2s cubic-bezier(.55,0,.35,1)'; cv.style.transform = `translate(-50%, ${210 + 8 - cartH*0.3}px)`; }
+  await esperar(1400);
+  conso.classList.add('clic'); conso.classList.add('enc');   // clic de inserción y pantalla encendida
+  Musica.jingle();
+  await esperar(1900);
+  try { await promesaDatos; } catch { esc_.hidden = true; $('inicio').hidden = false; animando = false; return aviso('No se pudieron cargar los datos. Comprueba tu conexión y recarga.'); }
+  await reproducirIntro(j);   // si hay un vídeo tuyo para este juego, se reproduce aquí
+  esc_.classList.add('sale'); await new Promise(r => setTimeout(r, 450));
+  entrar(j, nombre); esc_.hidden = true; animando = false;
+}
+$('bInsertar').onclick = insertar;
+
+// ---------- imágenes de cartuchos propias (opcionales) ----------
+const probarImg = urls => new Promise(res => { let i = 0; const n = () => { if (i >= urls.length) return res(null); const im = new Image(); im.onload = () => res(im.src); im.onerror = n; im.src = urls[i++]; }; n(); });
+JUEGOS.forEach(async j => {
+  const u = await probarImg(['png','webp','jpg'].map(e => `cartuchos/${slug(j.n)}.${e}`));
+  if (u) { j.img = u; clearTimeout(probarImg.t); probarImg.t = setTimeout(() => { if (!$('inicio').hidden) pintarInicio(); }, 60); }
+});
+
+// ---------- vídeo de intro (opcional, tus propios archivos) ----------
+async function reproducirIntro(j) {
+  const v = $('introVideo');
+  for (const url of [`intros/${slug(j.n)}.mp4`, `intros/gen${j.g}.mp4`]) {
+    const ok = await new Promise(res => {
+      const t = document.createElement('video'); let to;
+      const f = r => { clearTimeout(to); t.removeAttribute('src'); res(r); };
+      to = setTimeout(() => f(false), 1800); t.preload = 'metadata'; t.onloadedmetadata = () => f(true); t.onerror = () => f(false); t.src = url;
+    });
+    if (!ok) continue;
+    $('intro').hidden = false; v.src = url; v.muted = false;
+    try { await v.play(); } catch { v.muted = true; try { await v.play(); } catch { $('intro').hidden = true; continue; } }
+    await new Promise(res => { v.onended = res; v.onerror = res; $('bSaltarIntro').onclick = res; });
+    v.pause(); v.removeAttribute('src'); v.load(); $('intro').hidden = true; return true;
+  }
+  return false;
+}
+
+// ---------- música: pistas propias (musica/genN-k.mp3) o chiptune original generado ----------
+const Musica = (() => {
+  const AJ = {0:{b:104,r:57,e:[0,2,4,5,7,9,11],w:'triangle'}, 1:{b:136,r:60,e:[0,2,4,5,7,9,11],w:'square'}, 2:{b:124,r:62,e:[0,2,4,5,7,9,10],w:'square'}, 3:{b:118,r:57,e:[0,2,3,5,7,8,10],w:'square'},
+    4:{b:112,r:64,e:[0,2,3,5,7,9,10],w:'triangle'}, 5:{b:140,r:65,e:[0,2,4,6,7,9,11],w:'sawtooth'}, 6:{b:126,r:67,e:[0,2,4,5,7,9,11],w:'triangle'},
+    7:{b:108,r:58,e:[0,2,4,5,7,9,11],w:'sine'}, 8:{b:144,r:60,e:[0,2,3,5,7,8,10],w:'sawtooth'}, 9:{b:130,r:62,e:[0,2,4,5,7,9,11],w:'square'}, 10:{b:120,r:57,e:[0,2,3,5,7,8,11],w:'sawtooth'}};
+  const PROG = [[0,5,3,4],[0,3,4,3],[5,3,0,4],[0,4,5,3],[0,2,3,4]];
+  let bus = null, ctx = null, master = null, gen = 1, timer = null, pieza = null, paso = 0, tNext = 0, tok = 0, audio = null, lista = [], modo = 'gen', actual = '', ruido = null;
+  let silencio = localStorage.getItem('pk_mute') === '1';
+  const midi = m => 440 * Math.pow(2, (m-69)/12);
+  const grado = (a,g) => a.r + a.e[((g%7)+7)%7] + 12*Math.floor(g/7);
+  const rnd = a => a[Math.floor(Math.random()*a.length)];
+  function asegurar() {
+    if (ctx) return true;
+    const C = window.AudioContext || window.webkitAudioContext; if (!C) return false;
+    ctx = new C(); master = ctx.createGain(); master.gain.value = silencio ? 0 : 0.5; master.connect(ctx.destination);
+    ruido = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate); const d = ruido.getChannelData(0); for (let i=0; i<d.length; i++) d[i] = Math.random()*2-1;
+    return true;
+  }
+  function nota(f,t,d,w,v) { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = w; o.frequency.setValueAtTime(f,t);
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(v,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+    o.connect(g); g.connect(bus||master); o.start(t); o.stop(t+d+0.02); }
+  function golpe(t,d,v,hp) { const s = ctx.createBufferSource(); s.buffer = ruido; const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = hp;
+    const g = ctx.createGain(); g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(0.0001,t+d); s.connect(f); f.connect(g); g.connect(bus||master); s.start(t); s.stop(t+d+0.02); }
+  function bombo(t) { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(150,t); o.frequency.exponentialRampToValueAtTime(40,t+0.12);
+    g.gain.setValueAtTime(0.5,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.15); o.connect(g); g.connect(bus||master); o.start(t); o.stop(t+0.2); }
+  function nuevaPieza() {
+    const a = AJ[gen] || AJ[1], prog = rnd(PROG); let prev = 2 + Math.floor(Math.random()*4); const m = [];
+    for (const c of prog) for (let s=0; s<16; s++) {
+      if (s%4===0 && Math.random()<.85) { prev = c + rnd([0,2,4]); m.push(prev); }
+      else if (Math.random() < .28) m.push(null);
+      else { prev = Math.max(0, Math.min(11, prev + rnd([-2,-1,-1,0,1,1,2]))); m.push(prev); }
+    }
+    return {a, prog, m};
+  }
+  function programar(i,t) {
+    const a = pieza.a, d = 60/a.b/2, c = pieza.prog[Math.floor(i/16)], s = i%16, n = pieza.m[i];
+    if (n !== null) nota(midi(grado(a,n)), t, d*1.6, a.w, 0.09);
+    if (s%4===0) nota(midi(grado(a,c-7)), t, d*3.6, 'triangle', 0.16);
+    if (s%2===1) golpe(t, 0.04, 0.05, 7000);
+    if (s%8===0) bombo(t);
+    if (s%8===4) golpe(t, 0.1, 0.08, 1800);
+    if (s%4===2 && Math.random()<.5) nota(midi(grado(a,c+4)+12), t, d, a.w, 0.035);
+  }
+  function tick() { while (tNext < ctx.currentTime + 1.0) { programar(paso, tNext); tNext += 60/pieza.a.b/2; if (++paso >= 64) { pieza = nuevaPieza(); paso = 0; } } }
+  const buscar = g => Promise.all([1,2,3,4,5,6,7,8].map(k => new Promise(res => {
+    const u = `musica/${g===0?'inicio':'gen'+g}-${k}.mp3`, a = new Audio(); let to;
+    const f = r => { clearTimeout(to); res(r ? u : null); };
+    to = setTimeout(() => f(false), 1500); a.preload = 'metadata'; a.onloadedmetadata = () => f(true); a.onerror = () => f(false); a.src = u;
+  }))).then(l => l.filter(Boolean));
+  function otroArchivo() {
+    if (audio) audio.pause();
+    const u = lista.length > 1 ? rnd(lista.filter(x => x !== actual)) : lista[0]; actual = u;
+    audio = new Audio(u); audio.volume = 0.5; audio.muted = silencio; audio.onended = otroArchivo; audio.play().catch(() => {});
+  }
+  const api = {
+    estado() { for (const b of [$('bMusica'), $('bMusicaIni')]) { if (!b) continue; b.textContent = silencio ? '🔇' : '🔊'; b.title = (silencio ? 'Música apagada' : 'Música encendida') + (modo==='archivos' ? ' · tus pistas' : ' · chiptune original'); } },
+    async iniciar(g) {
+      if (g === gen && (timer || audio)) return;
+      api.detener(); gen = g; const mio = ++tok;
+      if (!asegurar()) return; try { await ctx.resume(); } catch {}
+      lista = await buscar(g); if (mio !== tok) return;
+      bus = ctx.createGain(); bus.connect(master);
+      if (lista.length) { modo = 'archivos'; otroArchivo(); }
+      else { modo = 'gen'; pieza = nuevaPieza(); paso = 0; tNext = ctx.currentTime + 0.1; timer = setInterval(tick, 100); }
+      api.estado();
+    },
+    detener() { tok++; clearInterval(timer); timer = null; if (audio) { audio.pause(); audio = null; }
+      if (bus) { const b = bus; bus = null; b.gain.setTargetAtTime(0, ctx.currentTime, 0.03); setTimeout(() => b.disconnect(), 400); } },
+    siguiente() { if (modo==='archivos' && lista.length) otroArchivo(); else if (timer) { pieza = nuevaPieza(); paso = 0; tNext = ctx.currentTime + 0.05; } },
+    alternar() { silencio = !silencio; localStorage.setItem('pk_mute', silencio ? '1' : '0'); if (master) master.gain.value = silencio ? 0 : 0.5; if (audio) audio.muted = silencio; api.estado(); },
+    jingle() { if (!asegurar()) return; ctx.resume?.(); if (silencio) return; const t = ctx.currentTime + 0.05; [72,76,79,84].forEach((m,i) => nota(midi(m), t+i*0.11, 0.25, 'square', 0.12)); },
+  };
+  return api;
+})();
+$('bMusica').onclick = $('bMusicaIni').onclick = () => Musica.alternar();
+
+// ============================================================
+//  PARTIDAS (una por run) Y PANTALLA PRINCIPAL
+// ============================================================
+const nuevaCaja = () => Array(30).fill(null);
+const nuevaPartida = nombre => ({n:nombre, equipo:Array(6).fill(null), cajas:Array.from({length:8}, nuevaCaja), muertos:Array(60).fill(null)});
+function cargarPartidas() {
+  try { const s = JSON.parse(localStorage.getItem('pk_partidas_v2')); if (s && s.partidas && s.partidas[s.act]) return s; } catch {}
+  const S = {act:'p1', partidas:{p1:nuevaPartida('Run 1')}};
+  try { // migrar la partida de la primera versión
+    const v1 = JSON.parse(localStorage.getItem('pk_partida_v1'));
+    if (v1) {
+      const p = S.partidas.p1;
+      v1.equipo.slice(0,6).forEach((m,i) => p.equipo[i] = m);
+      v1.cajas.forEach((m,i) => { const b = Math.floor(i/30); while (p.cajas.length <= b) p.cajas.push(nuevaCaja()); p.cajas[b][i%30] = m; });
+    }
+  } catch {}
+  return S;
+}
+let D, S, verMuertos = false, vista = 'dex', cajaAct = 0, ed = null, panelDer = 'ataques', soloJuego = true, destino = null, vistaAntes = 'dex';
+const P = () => S.partidas[S.act];
+let ultimo = null; const deshacer = [];   // instantáneas de S para Ctrl+Z (máx. 30)
+const guardar = () => {
+  const ahora = JSON.stringify(S);
+  if (ultimo && ultimo !== ahora) { deshacer.push(ultimo); if (deshacer.length > 30) deshacer.shift(); }
+  ultimo = ahora; localStorage.setItem('pk_partidas_v2', ahora); contadores();
+};
+const contadores = () => {
+  $('bEquipo').textContent = `Equipo ${P().equipo.filter(Boolean).length}/6`;
+  $('bCajas').textContent = `Cajas ${P().cajas.flat().filter(Boolean).length}`;
+  const med = P().med, tot = lideresDe(J.n).length; $('bMed').textContent = tot ? `🏅 ${med ? lideresDe(J.n).filter((_, i) => med.m[i]).length : 0}/${tot}` : '🏅 Liga';
+};
+const muertos = () => P().muertos ||= Array(60).fill(null);   // caja "Muertos" (también en partidas antiguas)
+const lista = r => r.l==='e' ? P().equipo : r.l==='m' ? muertos() : P().cajas[r.b];
+const getR = r => lista(r)[r.i];
+const setR = (r,v) => { lista(r)[r.i] = v; };
+function huecoCaja() { // primer hueco libre empezando por la caja actual
+  const n = P().cajas.length;
+  for (let k=0; k<n; k++) { const b=(cajaAct+k)%n, i=P().cajas[b].indexOf(null); if (i>=0) return {l:'c', b, i}; }
+  P().cajas.push(nuevaCaja()); return {l:'c', b:P().cajas.length-1, i:0};
+}
+const huecoEquipo = () => { const i = P().equipo.indexOf(null); return i>=0 ? {l:'e', i} : null; };
+
+const move = id => MVmap.get(id) || D.moves.find(m => m.id===id);
+const item = id => D.items.find(i => i.id===id);
+const nombreDe = id => D.pokemon.find(p => p.id===id)?.n || '#'+id;
+const pokeImg = id => `${SPR}pokemon/${id}.png`;
+const tag = t => `<span class="tag" style="--c:${TIPOS[t][1]}">${TIPOS[t][0]}</span>`;
+const tiposHTML = id => tiposDe(id).map(tag).join(' ');
+const habDe = m => m.hab ?? habLista(m.id)[0]?.[0];
+const FORMA_JUEGOS = {alola:['Sol','Luna','Ultrasol','Ultraluna',"Let's Go Pikachu","Let's Go Eevee"], galar:['Espada','Escudo'], hisui:['Leyendas Arceus'], paldea:['Escarlata','Púrpura']};
+function enJuego(p) { return p.g ? J.g >= p.g && enJuego({id:p.e}) : p.r ? FORMA_JUEGOS[p.r].includes(J.n) && p.e <= J.max : p.id <= J.max || J.extra.includes(p.id); }
+
+// ---------- datos según la generación del juego (ataques, objetos, habilidades, tipos) ----------
+const VG = {'Rojo':1,'Azul':1,'Amarillo':2,'Oro':3,'Plata':3,'Cristal':4,'Rubí':5,'Zafiro':5,'Esmeralda':6,'Rojo Fuego':7,'Verde Hoja':7,'Diamante':8,'Perla':8,'Platino':9,'HeartGold':10,'SoulSilver':10,
+  'Negro':11,'Blanco':11,'Negro 2':14,'Blanco 2':14,'X':15,'Y':15,'Rubí Omega':16,'Zafiro Alfa':16,'Sol':17,'Luna':17,'Ultrasol':18,'Ultraluna':18,"Let's Go Pikachu":19,"Let's Go Eevee":19,
+  'Espada':20,'Escudo':20,'Diamante Brillante':23,'Perla Reluciente':23,'Leyendas Arceus':24,'Escarlata':25,'Púrpura':25};   // grupo de versiones de PokéAPI
+const ORAS = ['Rubí Omega','Zafiro Alfa'], SOLO_J = {
+  'mega-stones':['X','Y',...ORAS,'Sol','Luna','Ultrasol','Ultraluna',"Let's Go Pikachu","Let's Go Eevee"], 'z-crystals':['Sol','Luna','Ultrasol','Ultraluna'],
+  'red-orb':ORAS, 'blue-orb':ORAS, 'adamant-crystal':['Leyendas Arceus'], 'lustrous-globe':['Leyendas Arceus'], 'rusted-sword':['Espada','Escudo'], 'rusted-shield':['Espada','Escudo'],
+  'griseous-orb':['Platino','HeartGold','SoulSilver','Diamante Brillante','Perla Reluciente','Leyendas Arceus']};
+const FISICOS = new Set([1,2,3,4,5,6,7,8,9]);   // hasta la 3.ª generación la clase del ataque depende del tipo
+let MV = [], MVmap = new Map();
+function prepararJuego() {
+  const vg = VG[J.n] || 25;
+  MV = D.moves.map(m => {
+    const o = {}; for (const [v, c] of m.h || []) if (v > vg) for (const k in c) if (!(k in o)) o[k] = c[k];   // valores que tenía antes de cambiar
+    let x = Object.keys(o).length ? {...m, ...o} : m;
+    if (!TIPOS[x.t]) x = {...x, t: 1};   // Maldición era de tipo ??? hasta la 5.ª generación y no hay icono para él: se muestra como Normal
+    if (J.g <= 3 && x.c !== 1) x = {...x, c: FISICOS.has(x.t) ? 2 : 3};
+    return x;
+  });
+  MVmap = new Map(MV.map(m => [m.id, m]));
+}
+const itemsJuego = () => J.g < 2 ? [] : D.items.filter(i => i.g <= J.g && !(SOLO_J[i.k] && !SOLO_J[i.k].includes(J.n)) && !(SOLO_J[i.s] && !SOLO_J[i.s].includes(J.n)));
+const tiposJuego = () => Object.entries(TIPOS).filter(([t]) => !(+t === 18 && J.g < 6) && !((+t === 9 || +t === 17) && J.g < 2));
+function tiposDe(id) { const p = (D.tipoPast[id] || []).find(([g]) => g >= J.g); return (p ? p[1] : D.tipos[id]) || []; }
+function habLista(id) {   // [[habilidad, oculta, hueco]] según la generación del juego
+  if (J.g < 3) return [];
+  const m = new Map((D.hab[id] || []).map(x => [x[2], x]));
+  for (const [, filas] of (D.habPast[id] || []).filter(([g]) => g >= J.g).sort((a, b) => b[0] - a[0])) for (const [h, ab, oc] of filas) ab ? m.set(h, [ab, oc, h]) : m.delete(h);
+  return [...m.values()].filter(x => J.g >= 5 || !x[1]).sort((a, b) => a[2] - b[2]);
+}
+// iconos de las pestañas, con los colores del cartucho
+const bolsaSVG = (c1, c2) => `<svg viewBox="0 0 32 32"><path d="M9 15v-3a7 7 0 0 1 14 0v3" fill="none" stroke="#1a1030" stroke-width="3"/><path d="M9 15v-3a7 7 0 0 1 14 0v3" fill="none" stroke="${c2}" stroke-width="1.4"/>
+  <path d="M5 14h22l2 14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="${c1}" stroke="#1a1030" stroke-width="1.6" stroke-linejoin="round"/>
+  <circle cx="16" cy="23" r="4.6" fill="#fff" stroke="#1a1030" stroke-width="1.2"/><path d="M11.4 23a4.6 4.6 0 0 1 9.2 0z" fill="${c2}"/><path d="M11.4 23h9.2" stroke="#1a1030" stroke-width="1.2"/><circle cx="16" cy="23" r="1.4" fill="#fff" stroke="#1a1030" stroke-width="1"/>
+  <path d="M4 14.5C4 10.5 8 8.5 16 8.5s12 2 12 6z" fill="${c2}" stroke="#1a1030" stroke-width="1.6" stroke-linejoin="round"/><rect x="13.6" y="11.6" width="4.8" height="4.4" rx="1" fill="#ffd84a" stroke="#1a1030" stroke-width="1.1"/></svg>`;
+const discoSVG = (txt, c1) => `<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" fill="${c1}" stroke="#1a1030" stroke-width="1.6"/><circle cx="16" cy="16" r="14" fill="none" stroke="#fff6" stroke-width="1.4" stroke-dasharray="14 74" transform="rotate(-60 16 16)"/>
+  <circle cx="16" cy="16" r="8.6" fill="#f4f1e6" stroke="#1a1030" stroke-width="1.2"/><text x="16" y="19.2" text-anchor="middle" font-size="8.6" font-weight="900" font-family="Arial,sans-serif" fill="#1a1030">${txt}</text></svg>`;
+function aplicarGeneracion() {
+  $('tAtaques').firstChild.innerHTML = discoSVG(J.g >= 8 ? 'DT' : 'MT', J.c1);
+  $('tObjetos').hidden = J.g < 2; $('tObjetos').firstChild.innerHTML = bolsaSVG(J.c1, J.c2);
+  if (J.g < 2 && panelDer === 'objetos') verPanel('ataques');
+}
+
+function entrar(j, nombre) {
+  J = j;
+  $('inicio').hidden = true; $('app').hidden = false; $('noche').hidden = false; document.body.classList.add('noche');
+  Musica.iniciar(j.g);
+  $('pillJ').innerHTML = `<span class="mini-cart" style="--c1:${j.c1};--c2:${j.c2}"></span>${esc(nombre)} · ${esc(j.n)}`;
+  promesaDatos.then(d => {
+    D = d; S = S || cargarPartidas(); ultimo = JSON.stringify(S);
+    const nom = `${nombre} · ${j.n}`; // una partida por personaje y juego
+    let id = continuarId && S.partidas[continuarId] ? continuarId : Object.keys(S.partidas).find(k => S.partidas[k].n===nom);
+    continuarId = null;
+    if (!id) {
+      const vacia = Object.keys(S.partidas).length===1 && S.act==='p1' && S.partidas.p1.n==='Run 1' && !S.partidas.p1.equipo.some(Boolean) && !S.partidas.p1.cajas.flat().some(Boolean);
+      if (vacia) { S.partidas.p1.n = nom; id = 'p1'; }
+      else { id = 'p' + Date.now(); S.partidas[id] = nuevaPartida(nom); }
+    }
+    S.act = id; guardar();
+    soloJuego = true; vista = 'dex'; ['Dex','Equipo','Cajas'].forEach(n => $('b'+n).classList.toggle('on', n==='Dex'));
+    prepararJuego(); filtrosMoves(); $('selOrden').value = orden; marcarFiltros(); pintarMoves(); pintarItems(); aplicarGeneracion();
+    refrescarTodo();
+  });
+}
+$('bSalir').onclick = () => { ed = null; destino = null; Musica.detener(); $('app').hidden = true; $('inicio').hidden = false; pintarInicio(); musicaInicio(); };
+
+// ---------- efecto del objeto equipado (forma o stats) ----------
+function efecto(id, itemId) {
+  const base = D.stats[id], it = itemId && item(itemId);
+  if (!base || !it) return null;
+  const fid = D.formas[itemId];
+  if (fid !== undefined) {
+    if (D.formaDe[fid] !== id) return {nota:`${it.n} solo funciona con ${nombreDe(D.formaDe[fid])}.`};
+    return {it, forma:fid, nombre:D.formN[fid], eff:D.stats[fid], tipos:D.tipos[fid], hab:D.hab[fid]?.[0]?.[0]};
+  }
+  const M = MULT[it.s]; if (!M) return null;
+  if (M.solo && !M.solo.includes(id)) return {nota:`${it.n} solo afecta a ${M.solo.map(nombreDe).join(' y ')}.`};
+  if (M.evo && !D.preevo.includes(id)) return {nota:`${it.n} solo sube las stats de Pokémon que todavía pueden evolucionar.`};
+  const parts = Object.keys(M).filter(k => /^\d$/.test(k)).map(k => `${STATS[k]} ×${M[k]}`).join(' · ').replace(/(\d)\.(\d)/g, '$1,$2');
+  return {it, texto:parts};   // sin números: el juego lo aplica a la stat final (IVs/EVs que no se ven en la run)
+}
+function modHTML(ef) {
+  if (!ef) return '';
+  if (ef.nota) return `<div class="mod nota">${esc(ef.nota)}</div>`;
+  const ico = `<img src="${SPR}items/${ef.it.s}.png" onerror="this.style.display='none'"> `;
+  if (ef.forma) return `<div class="mod">${ico}Con ${esc(ef.it.n)} → <b>${esc(ef.nombre)}</b><br>${tiposHTML(ef.forma)}</div>`;
+  return `<div class="mod">${ico}Con ${esc(ef.it.n)}: <b>${esc(ef.texto)}</b> <small>(sobre la stat final)</small></div>`;
+}
+const colorStat = x => x>=130 ? '#2dd6b0' : x>=100 ? '#6bdf4e' : x>=70 ? '#f6cf19' : x>=50 ? '#f08a31' : '#ee4d52';
+// tabla de stats; si se pasa `orig`, muestra la diferencia respecto a las originales
+function tabla(vals, nat, orig) {
+  const N = NAT[J.g < 3 ? 0 : (nat||0)], suma = a => a.reduce((s,x) => s+x, 0);
+  const filas = vals.map((x,i) => {
+    const cls = i===N.up ? 'up' : i===N.down ? 'down' : '', fl = i===N.up ? '▲ ' : i===N.down ? '▼ ' : '';
+    const d = orig ? orig[i] !== x ? `<span class="d ${x>orig[i]?'up-t':'down-t'}">${x>orig[i]?'+':''}${x-orig[i]}</span>` : '<span class="d"></span>' : '<span class="d"></span>';
+    return `<div class="sr ${cls}"><span class="l">${fl}${STATS[i]}</span><div class="b"><i style="width:${Math.min(100,x/180*100)}%;--c:${colorStat(x)}"></i></div><span class="v">${x}</span>${orig ? d : ''}</div>`;
+  }).join('');
+  return `<div class="tabla ${orig?'cmp':''}">${filas}<div class="tot">Total ${suma(vals)}${orig ? ` (<b>${suma(vals)>suma(orig)?'+':''}${suma(vals)-suma(orig)}</b>)` : ''}</div></div>`;
+}
+const statsCarta = (id, nat) => D.stats[id] ? tabla(D.stats[id], nat) : '';
+
+// ---------- taller (editor) ----------
+function elegir(p, m, origen) {
+  ed = m ? {...m, moves:[...m.moves], poke:p, origen, lvl:m.lvl||50, hab:habDe(m)}
+         : {poke:p, nat:0, moves:[null,null,null,null], item:null, lvl:50, hab:habLista(p.id)[0]?.[0], caido:false, origen:null};
+  pintarEditor(); pintarIzq();
+}
+const snapshot = () => ({mote:ed.mote||'', id:ed.poke.id, n:ed.poke.n, nat:ed.nat, moves:[...ed.moves], item:ed.item, lvl:ed.lvl, hab:ed.hab, caido:!!ed.caido});
+const cerrar = () => { ed = null; pintarEditor(); pintarIzq(); };
+function verPanel(p) {
+  panelDer = p;
+  $('tAtaques').classList.toggle('on', p==='ataques'); $('tObjetos').classList.toggle('on', p==='objetos');
+  $('pAtaques').hidden = p!=='ataques'; $('pObjetos').hidden = p!=='objetos';
+}
+function opcionesHab() {
+  const propias = habLista(ed.poke.id), ids = new Set(propias.map(h => h[0]));
+  const o = (a,txt) => `<option value="${a}" ${a===ed.hab?'selected':''}>${esc(txt)}</option>`;
+  const resto = Object.entries(D.abN).filter(([a]) => !ids.has(+a) && D.abG[a] <= J.g).sort((a,b) => a[1].localeCompare(b[1],'es'));
+  return `<optgroup label="Habilidades de ${esc(ed.poke.n)}">${propias.map(([a,h]) => o(a, D.abN[a] + (h?' (oculta)':''))).join('')}</optgroup>
+          <optgroup label="Cualquier otra habilidad (randomlocke)">${resto.map(([a,n]) => o(+a, n)).join('')}</optgroup>`;
+}
+function megaHTML() {
+  const ef = ed && efecto(ed.poke.id, ed.item);
+  if (!ef || !ef.forma) return '';
+  return `<div class="megaimg"><div class="marco" style="--tc:${ef.tipos && ef.tipos[0] ? TIPOS[ef.tipos[0]][1] : '#8a7be0'}"><img src="${pokeImg(ef.forma)}" onerror="this.style.display='none'" alt=""></div><b>${esc(ef.nombre)}</b></div>`;
+}
+function stats2() { // stats originales + stats modificadas por el objeto
+  const id = ed.poke.id, base = D.stats[id]; if (!base) return '';
+  const ef = efecto(id, ed.item);
+  let h = `<h3>Stats originales</h3>${tabla(base, ed.nat)}`;
+  if (ef) {
+    h += `<h3 style="margin-top:6px">${ef.eff ? 'Stats con el objeto' : ef.texto ? 'Efecto del objeto' : 'Objeto sin efecto'}</h3>${modHTML(ef)}`;
+    if (ef.eff) h += tabla(ef.eff, ed.nat, base);
+  }
+  return h;
+}
+function pintarEditor() {
+  const e = $('editor');
+  if (!ed) {
+    e.innerHTML = `<div class="vacio"><div class="ball"></div><p><b>TALLER</b></p><p>Elige un Pokémon de la Pokédex, del equipo o de las cajas para montarlo: nivel, habilidad, naturaleza, ataques y objeto.</p></div>`;
+    return;
+  }
+  const t = tiposDe(ed.poke.id);
+  const slotsM = ed.moves.map((id,i) => {
+    const m = id && move(id);
+    return `<div class="slot ${m?'lleno':''}" data-m="${i}" ${m?'draggable="true"':''} title="${m?'Click o arrástralo a la lista para quitar':'Click y elige en Ataques'}">${m ? `${tag(m.t)} ${esc(m.n)}` : 'Ataque '+(i+1)}</div>`;
+  }).join('');
+  const it = ed.item && item(ed.item);
+  const edita = !!ed.origen, otro = edita && (ed.origen.l==='e' ? 'caja' : 'equipo');
+  e.innerHTML = `
+    <div class="hero">
+      <div class="marco" draggable="true" title="Arrástrala al equipo o a una caja" style="--tc:${t[0]?TIPOS[t[0]][1]:'#8a7be0'}"><img class="${ed.caido?'caido':''}" src="${pokeImg(ed.poke.id)}" alt=""></div>
+      <div class="hid">
+        <h1>${esc(ed.poke.n)} <small>#${ed.poke.e||ed.poke.id}</small></h1>
+        <div>${tiposHTML(ed.poke.id)}</div>
+        <div class="campos"><input id="inMote" maxlength="12" placeholder="Sin mote" value="${esc(ed.mote||'')}" title="Mote del Pokémon"><span class="etq">← Mote</span><input id="inLvl" type="number" min="1" max="100" value="${ed.lvl}" title="Nivel"><span class="etq">← Nivel</span>
+          ${J.g >= 3 ? `<select id="selHab" title="Habilidad">${opcionesHab()}</select>
+          <select id="selNat" title="Naturaleza">${NAT.map((n,i)=>`<option value="${i}" ${i===ed.nat?'selected':''}>${n.txt}</option>`).join('')}</select>` : ''}</div>
+      </div>
+    </div>
+    <div class="edcuerpo">
+      <section><h3>Ataques</h3><div class="slots2">${slotsM}</div>
+        <h3 style="margin-top:8px;${J.g < 2 ? 'display:none' : ''}">Objeto equipado</h3>
+        <div class="slot ${it?'lleno':''}" data-i ${J.g < 2 ? 'style="display:none"' : ''} ${it?'draggable="true"':''} title="${it?'Click o arrástralo a la lista para quitar':'Click y elige en Objetos'}">${it ? `<img src="${SPR}items/${it.s}.png" onerror="this.style.display='none'">${esc(it.n)}` : 'Sin objeto'}</div>${megaHTML()}</section>
+      <section id="edStats">${stats2()}</section>
+    </div>
+    <div class="acciones">${edita
+      ? `<button class="primary" id="bGuardarCambios">Guardar cambios</button><button id="bMover">→ ${otro==='caja'?'A una caja':'Al equipo'}</button>
+         <button id="bCaido">${ed.caido?'Revivir':'Marcar caído ✝'}</button><span class="sp"></span><button class="peligro" id="bEliminar">Eliminar</button><button id="bCancelar">Cancelar</button>`
+      : destino ? `<button class="primary" id="bADestino">Añadir a ${etiquetaDestino(destino)}</button><span class="sp"></span><button id="bCancelar">Cancelar</button>`
+      : `<button class="primary" id="bAEquipo" ${huecoEquipo()?'':'disabled'}>Añadir al equipo</button><button id="bACaja">Añadir a caja</button><span class="sp"></span><button id="bCancelar">Cancelar</button>`}</div>`;
+
+  if ($('selNat')) { $('selNat').onchange = ev => { ed.nat = +ev.target.value; $('edStats').innerHTML = stats2(); }; $('selHab').onchange = ev => ed.hab = +ev.target.value; }
+  $('inMote').oninput = ev => { ed.mote = ev.target.value.trim(); };
+  $('inLvl').oninput = ev => { ed.lvl = Math.max(1, Math.min(100, +ev.target.value || 1)); };
+  e.querySelectorAll('[data-m]').forEach(s => s.onclick = () => {
+    const i = +s.dataset.m;
+    if (ed.moves[i]) { ed.moves[i] = null; pintarEditor(); } else verPanel('ataques');
+  });
+  e.querySelector('[data-i]').onclick = () => { if (ed.item) { ed.item = null; pintarEditor(); } else verPanel('objetos'); };
+  $('bCancelar').onclick = cerrar;
+  if (edita) {
+    const o = ed.origen;
+    $('bGuardarCambios').onclick = () => { setR(o, snapshot()); guardar(); aviso('Cambios guardados'); cerrar(); };
+    $('bCaido').onclick = () => {
+      ed.caido = !ed.caido;
+      const h = ed.caido && o.l !== 'm' ? {l:'m', b:0, i:muertos().indexOf(null)} : null;   // al caer pasa a la caja Muertos
+      if (h && h.i >= 0) { setR(h, snapshot()); setR(o, null); guardar(); aviso(ed.poke.n+' ha caído ✝ y pasa a Muertos'); return cerrar(); }
+      getR(o).caido = ed.caido; guardar(); pintarEditor(); pintarIzq(); aviso(ed.caido ? ed.poke.n+' ha caído ✝' : ed.poke.n+' revive'); };
+    $('bEliminar').onclick = async () => { if (await Dialogo.confirmar('¿Eliminar a '+ed.poke.n+'?', {titulo:'Eliminar Pokémon', ok:'Eliminar', peligro:true})) { setR(o, null); guardar(); cerrar(); } };
+    $('bMover').onclick = () => {
+      const dest = o.l==='e' ? huecoCaja() : huecoEquipo();
+      if (!dest) return aviso('El equipo está lleno');
+      setR(dest, snapshot()); setR(o, null); guardar(); aviso('Movido'); cerrar();
+    };
+  } else if (destino) {
+    $('bADestino').onclick = () => { const d = destino, v = vistaAntes; setR(d, snapshot()); destino = null; guardar(); aviso(`${ed.poke.n} añadido a ${etiquetaDestino(d)}`); ed = null; pintarEditor(); if (d.l==='c') cajaAct = d.b; cambiarVista(v); };
+  } else {
+    $('bAEquipo').onclick = () => { setR(huecoEquipo(), snapshot()); guardar(); aviso(ed.poke.n+' añadido al equipo'); cerrar(); };
+    $('bACaja').onclick = () => { const h = huecoCaja(); setR(h, snapshot()); guardar(); aviso(`${ed.poke.n} añadido a la caja ${h.b+1}`); cerrar(); };
+  }
+}
+
+// ---------- panel izquierdo: pokédex, equipo y cajas ----------
+const refAttr = (l,b,i) => `data-l="${l}" data-b="${b}" data-i="${i}"`;
+const esSel = (l,b,i) => ed && ed.origen && ed.origen.l===l && ed.origen.i===i && (l==='e' || ed.origen.b===b);
+const resumen = m => { const ef = efecto(m.id, m.item);
+  return `${m.mote ? m.mote + ' (' + m.n + ')' : m.n} · Nv ${m.lvl||50}${J.g >= 3 ? ' · ' + NAT[m.nat].n : ''}${ef && ef.nombre ? ' · '+ef.nombre : ''}\n${m.moves.filter(Boolean).map(id => move(id)?.n).join(', ') || 'sin ataques'}\n${m.item && item(m.item) ? item(m.item).n : 'sin objeto'}`; };
+function slotCompacto(m, l, b, i) {
+  if (!m) return `<div class="slot2 libre" title="Doble clic para añadir un Pokémon" ${refAttr(l,b,i)}>+</div>`;
+  return `<div class="slot2 ${m.caido?'caido':''} ${esSel(l,b,i)?'sel':''}" draggable="true" title="${esc(resumen(m))}" ${refAttr(l,b,i)}><img src="${pokeImg(m.id)}" alt=""><div class="nm">${esc(m.mote || m.n)}</div><small>Nv ${m.lvl||50}</small></div>`;
+}
+function carta(m, i) {
+  if (!m) return `<div class="carta libre" ${refAttr('e',0,i)}>Hueco libre — doble clic para añadir un Pokémon</div>`;
+  const it = m.item && item(m.item), h = habDe(m), ef = efecto(m.id, m.item);
+  const ataques = m.moves.map(id => { const x = id && move(id); return x ? `<span class="chip" style="--c:${TIPOS[x.t][1]}">${esc(x.n)}</span>` : '<span class="chip vacio">—</span>'; }).join('');
+  return `<div class="carta ${m.caido?'caido':''} ${esSel('e',0,i)?'sel':''}" draggable="true" ${refAttr('e',0,i)}><img src="${pokeImg(m.id)}" alt="">
+    <div class="info"><div class="tit">${esc(m.mote || m.n)} <small style="color:var(--mut)">${m.mote ? esc(m.n) + ' · ' : ''}Nv ${m.lvl||50}</small> ${tiposHTML(m.id)}</div>
+    <div class="sub">${J.g >= 3 ? NAT[m.nat].txt + (h && D.abN[h] ? ' · ' + esc(D.abN[h]) : '') : '&nbsp;'}</div>
+    <div class="chips">${ataques}</div>
+    <div class="objeto">${it ? `<img src="${SPR}items/${it.s}.png" onerror="this.style.display='none'">${esc(it.n)}${ef && ef.nombre ? ` → <b style="color:var(--am)">${esc(ef.nombre)}</b>` : ''}` : 'Sin objeto'}</div>
+    ${statsCarta(m.id, m.nat)}</div></div>`;
+}
+function pintarIzq() {
+  const g = $('gridIzq'), q = norm($('buscador').value.trim());
+  $('busDex').hidden = vista!=='dex';
+  if (vista === 'dex') {
+    const lista = D.pokemon.filter(p => (!soloJuego || enJuego(p)) && (!q || norm(p.n).includes(q) || String(p.e||p.id)===q));
+    g.innerHTML = `${destino ? `<div class="mod">Eligiendo Pokémon para <b>${etiquetaDestino(destino)}</b> <button id="bDestinoX" style="padding:0 10px;font-size:12px;border-radius:99px">Cancelar</button></div>` : ''}<div class="ambito"><span>${soloJuego ? `Pokémon de <b>${esc(J.n)}</b> (#1–#${J.max})` : 'Todos los Pokémon'}</span><button id="bAmbito">${soloJuego ? 'Ver todos' : 'Solo del juego'}</button></div>
+      <div class="grid">${lista.map(p => `<div draggable="true" class="poke ${ed&&!ed.origen&&ed.poke.id===p.id?'sel':''}" data-id="${p.id}"><img loading="lazy" src="${pokeImg(p.id)}" alt=""><div>${p.n}</div><small>#${p.e||p.id}</small></div>`).join('') || '<p style="color:var(--mut)">Sin resultados</p>'}</div>`;
+  } else if (vista === 'equipo') {
+    g.innerHTML = `<div class="cartas arena">${P().equipo.map(carta).join('')}</div><small style="color:var(--mut)">Arrastra para reordenar el equipo.</small>`;
+  } else {
+    const cajas = P().cajas;
+    g.innerHTML = `<h3>Equipo</h3><div class="slots6 arena">${P().equipo.map((m,i) => slotCompacto(m,'e',0,i)).join('')}</div>
+      <div class="cajabar"><h3 style="margin:6px 0 0">${verMuertos ? 'Muertos' : `Caja ${cajaAct+1} de ${cajas.length}`}</h3><small style="color:var(--mut)">${(verMuertos ? muertos() : cajas[cajaAct]).filter(Boolean).length}/${verMuertos ? 60 : 30} · arrastra para mover</small></div>
+      <div class="tabsC">${cajas.map((c,b) => `<button data-tab="${b}" class="${!verMuertos && b===cajaAct?'on':''}" title="${c.filter(Boolean).length}/30">${b+1}</button>`).join('')}<button data-tab="+" title="Añadir otra caja">+</button><button data-tab="m" class="${verMuertos?'on':''}" title="Caja de muertos: ${muertos().filter(Boolean).length}">Muertos</button></div>
+      <div class="slots6 ${verMuertos ? 'cementerio' : 'caja caja-' + (cajaAct % 8)}">${verMuertos ? muertos().map((m,i) => slotCompacto(m,'m',0,i)).join('') : cajas[cajaAct].map((m,i) => slotCompacto(m,'c',cajaAct,i)).join('')}</div>`;
+  }
+}
+function clickSlot(s) {
+  const r = {l:s.dataset.l, b:+s.dataset.b, i:+s.dataset.i}, m = getR(r);
+  if (m) elegir(D.pokemon.find(p => p.id===m.id), m, r);
+}
+// un hueco vacío se rellena con doble clic (evita abrir la Pokédex sin querer)
+document.addEventListener('dblclick', ev => {
+  const s = $('app').hidden ? null : ev.target.closest('#gridIzq [data-l]'); if (!s) return;
+  const r = {l:s.dataset.l, b:+s.dataset.b, i:+s.dataset.i}; if (getR(r)) return;
+  destino = r; vistaAntes = vista; ed = null; pintarEditor(); cambiarVista('dex'); aviso('Elige un Pokémon para: ' + etiquetaDestino(r));
+});
+const etiquetaDestino = r => r.l==='e' ? `Equipo · hueco ${r.i+1}` : r.l==='m' ? `Muertos · hueco ${r.i+1}` : `Caja ${r.b+1} · hueco ${r.i+1}`;
+document.addEventListener('click', ev => {
+  if ($('app').hidden) return;
+  if (ev.target.closest('#bAmbito')) { soloJuego = !soloJuego; return pintarIzq(); }
+  if (ev.target.closest('#bDestinoX')) { const v = vistaAntes; destino = null; return cambiarVista(v); }
+  const slot = ev.target.closest('#gridIzq [data-l]');
+  if (slot) return clickSlot(slot);
+  const poke = ev.target.closest('.poke');
+  if (poke) return elegir(D.pokemon.find(p => p.id===+poke.dataset.id));
+  const tab = ev.target.closest('[data-tab]');
+  if (tab) {
+    verMuertos = tab.dataset.tab==='m';
+    if (tab.dataset.tab==='+') { P().cajas.push(nuevaCaja()); cajaAct = P().cajas.length-1; guardar(); }
+    else if (!verMuertos) cajaAct = +tab.dataset.tab;
+    pintarIzq();
+  }
+});
+// arrastrar y soltar: intercambia los dos huecos (equipo y cajas)
+const refDe = el => { const s = el.closest?.('#gridIzq [data-l]'); return s && {l:s.dataset.l, b:+s.dataset.b, i:+s.dataset.i}; };
+document.addEventListener('dragstart', ev => { const r = refDe(ev.target); if (r && getR(r)) ev.dataTransfer.setData('text/plain', JSON.stringify(r)); });
+const TALLER = 'application/x-randomlab-taller';
+// destino de un arrastre: un hueco concreto o la pestaña de una caja / de Muertos (primer hueco libre)
+const destinoDe = el => {
+  const t = el.closest?.('#gridIzq [data-tab]');
+  if (!t) return refDe(el);
+  if (t.dataset.tab === '+') return null;
+  return t.dataset.tab === 'm' ? {l:'m', b:0, i:muertos().indexOf(null)} : {l:'c', b:+t.dataset.tab, i:P().cajas[+t.dataset.tab].indexOf(null)};
+};
+document.addEventListener('dragover', ev => {
+  const s = ev.target.closest?.('#gridIzq [data-l], #gridIzq [data-tab]:not([data-tab="+"])');
+  if (s) { ev.preventDefault(); document.querySelectorAll('.over').forEach(x => x.classList.remove('over')); s.classList.add('over'); }
+});
+// al arrastrar sobre Equipo / Cajas se abre esa vista para poder soltar dentro
+let resorte, resorteBtn;
+const sueltaResorte = () => { clearTimeout(resorte); resorteBtn = null; };
+document.addEventListener('dragover', ev => {
+  const btn = ev.target.closest?.('#bEquipo, #bCajas'); if (btn === resorteBtn) return;
+  clearTimeout(resorte); resorteBtn = btn;
+  if (btn && !btn.classList.contains('on')) resorte = setTimeout(() => btn.click(), 450);
+});
+document.addEventListener('dragend', () => { sueltaResorte(); document.querySelectorAll('.over').forEach(x => x.classList.remove('over')); });
+// arrastrar la imagen del Taller al equipo o a una caja
+document.addEventListener('dragstart', ev => { if (ed && ev.target.closest?.('#editor .hero .marco')) { ev.dataTransfer.setData(TALLER, '1'); ev.dataTransfer.effectAllowed = 'move'; } });
+// a = hueco de origen (o null si viene de la Pokédex), m = el Pokémon, b = hueco de destino
+function soltar(a, m, b) {
+  if (b.i < 0) return aviso(b.l === 'm' ? 'La caja Muertos está llena' : 'Esa caja está llena');
+  if (a && a.l === b.l && a.b === b.b && a.i === b.i) return pintarIzq();
+  const viejo = getR(b);
+  if (b.l === 'm' && !(a && a.l === 'm')) {            // a Muertos desde otro sitio: queda caído (si el hueco está ocupado, en el primer libre)
+    if (viejo) { b = {l:'m', b:0, i:muertos().indexOf(null)}; if (b.i < 0) return aviso('La caja Muertos está llena'); }
+    m.caido = true; setR(b, m); if (a) setR(a, null);
+    aviso(m.n + ' ha caído ✝ y pasa a Muertos');
+  } else if (a) { if (viejo && a.l === 'm') viejo.caido = true; setR(a, viejo); setR(b, m); }
+  else if (viejo) return aviso('Ese hueco está ocupado');
+  else { setR(b, m); aviso(m.n + ' añadido'); }
+  guardar(); ed = null; pintarEditor(); pintarIzq(); contadores();
+}
+document.addEventListener('drop', ev => {
+  sueltaResorte();
+  const b = destinoDe(ev.target); if (!b) return;
+  ev.preventDefault();
+  let a = null, m;
+  if (ev.dataTransfer.types.includes(TALLER)) { if (!ed) return; m = snapshot(); a = ed.origen || null; }
+  else { try { a = JSON.parse(ev.dataTransfer.getData('text/plain')); } catch {} m = a && getR(a); }
+  if (!m) return pintarIzq();
+  soltar(a, m, b);
+});
+
+// ---------- ataques y objetos ----------
+let fTipo = 0, fClase = 0, orden = 'n';
+function filtrosMoves() {
+  $('filtrosMoves').innerHTML =
+    tiposJuego().map(([t,[n,c]]) => `<button class="fchip" data-t="${t}" style="--c:${c}">${n}</button>`).join('') +
+    Object.entries(CLASES).map(([k,n]) => `<button class="fchip" data-k="${k}">${n}</button>`).join('') +
+    `<select id="selOrden" title="Ordenar"><option value="n">Orden: nombre</option><option value="p">Orden: potencia</option><option value="a">Orden: precisión</option></select>`;
+}
+$('filtrosMoves').onclick = ev => {
+  const c = ev.target.closest('.fchip'); if (!c) return;
+  if (c.dataset.t) fTipo = fTipo===+c.dataset.t ? 0 : +c.dataset.t;
+  if (c.dataset.k) fClase = fClase===+c.dataset.k ? 0 : +c.dataset.k;
+  marcarFiltros(); pintarMoves();
+};
+const marcarFiltros = () => document.querySelectorAll('#filtrosMoves .fchip').forEach(x => x.classList.toggle('on', (x.dataset.t && +x.dataset.t===fTipo) || (x.dataset.k && +x.dataset.k===fClase)));
+$('filtrosMoves').onchange = ev => { if (ev.target.id==='selOrden') { orden = ev.target.value; pintarMoves(); } };
+
+function pintarMoves() {
+  const q = norm($('fMoves').value.trim());
+  const l = MV.filter(m => m.g <= J.g && (!q || norm(m.n).includes(q)) && (!fTipo || m.t===fTipo) && (!fClase || m.c===fClase));
+  if (orden==='p') l.sort((a,b) => (+b.p||0)-(+a.p||0));
+  if (orden==='a') l.sort((a,b) => (+b.pr||0)-(+a.pr||0));
+  $('listaMoves').innerHTML = l.map(m =>
+    `<div class="move" draggable="true" data-id="${m.id}" style="--c:${TIPOS[m.t][1]}"><span class="n">${m.n}</span><small>${TIPOS[m.t][0]} · ${CLASES[m.c]}<br>Pot ${m.p} · Prec ${m.pr} · PP ${m.pp}</small></div>`).join('') || '<p style="color:var(--mut)">Ningún ataque coincide</p>';
+}
+function pintarItems() {
+  const q = norm($('fItems').value.trim());
+  $('listaItems').innerHTML = itemsJuego().filter(i => !q || norm(i.n).includes(q)).map(i =>
+    `<div class="item" draggable="true" data-id="${i.id}"><img loading="lazy" src="${SPR}items/${i.s}.png" onerror="this.style.visibility='hidden'" alt="">${i.n}</div>`).join('');
+}
+$('listaMoves').onclick = ev => {
+  const c = ev.target.closest('.move'); if (!c) return;
+  if (!ed) return aviso('Primero elige un Pokémon');
+  const id = +c.dataset.id;
+  if (ed.moves.includes(id)) return aviso('Ya tiene ese ataque');
+  const hueco = ed.moves.indexOf(null);
+  if (hueco < 0) return aviso('Ya tiene 4 ataques: quita uno haciendo click en él');
+  ed.moves[hueco] = id; pintarEditor();
+};
+$('listaItems').onclick = ev => {
+  const c = ev.target.closest('.item'); if (!c) return;
+  if (!ed) return aviso('Primero elige un Pokémon');
+  ed.item = +c.dataset.id; pintarEditor();
+};
+
+// arrastrar un ataque u objeto de las listas a su hueco en el editor
+const TIPO_DRAG = 'application/x-randomlab';
+document.addEventListener('dragstart', ev => {
+  const q = ev.target.closest?.('#editor .slot.lleno'); // sacar un ataque/objeto de su hueco
+  if (q) { ev.dataTransfer.setData(TIPO_DRAG, JSON.stringify(q.dataset.m !== undefined ? {k:'m', quitar:+q.dataset.m} : {k:'i', quitar:-1})); ev.dataTransfer.effectAllowed = 'move'; return; }
+  const c = ev.target.closest?.('#listaMoves .move, #listaItems .item'); if (!c) return;
+  ev.dataTransfer.setData(TIPO_DRAG, JSON.stringify({k: c.classList.contains('move') ? 'm' : 'i', id: +c.dataset.id}));
+  ev.dataTransfer.effectAllowed = 'copy';
+});
+const huecoEd = el => el.closest?.('.slot[data-m], .slot[data-i]:not([data-l])');
+const zonaQuitar = el => el.closest?.('#pAtaques, #pObjetos');
+document.addEventListener('dragover', ev => {
+  if (zonaQuitar(ev.target) && ev.dataTransfer.types.includes(TIPO_DRAG)) return ev.preventDefault();
+  const h = huecoEd(ev.target); if (!h || !ev.dataTransfer.types.includes(TIPO_DRAG)) return;
+  ev.preventDefault(); document.querySelectorAll('.over').forEach(x => x.classList.remove('over')); h.classList.add('over');
+});
+document.addEventListener('drop', ev => {
+  if (!ev.dataTransfer.types.includes(TIPO_DRAG)) return;
+  const h = huecoEd(ev.target), z = zonaQuitar(ev.target); if (!h && !z) return;
+  ev.preventDefault(); document.querySelectorAll('.over').forEach(x => x.classList.remove('over'));
+  if (!ed) return aviso('Primero elige un Pokémon');
+  const {k, id, quitar} = JSON.parse(ev.dataTransfer.getData(TIPO_DRAG));
+  if (quitar !== undefined) {   // viene de un hueco: soltarlo en la lista lo quita; en otro hueco de ataque los intercambia
+    if (!h) { if (k === 'm') ed.moves[quitar] = null; else ed.item = null; return pintarEditor(); }
+    if (k === 'm' && h.dataset.m !== undefined) { const t = ed.moves[+h.dataset.m]; ed.moves[+h.dataset.m] = ed.moves[quitar]; ed.moves[quitar] = t; pintarEditor(); }
+    return;
+  }
+  if (!h) return;
+  if (k === 'm' && h.dataset.m !== undefined) {
+    if (ed.moves.includes(id)) return aviso('Ya tiene ese ataque');
+    ed.moves[+h.dataset.m] = id; pintarEditor();
+  } else if (k === 'i' && h.dataset.m === undefined) { ed.item = id; pintarEditor(); }
+  else aviso(k === 'm' ? 'Suelta el ataque en un hueco de ataque' : 'Suelta el objeto en el hueco de objeto');
+});
+
+// arrastrar un Pokémon (Pokédex, equipo o cajas) sobre la imagen del editor: sustituye la especie y conserva ataques, objeto, nivel y naturaleza
+const imgEd = el => el.closest?.('#editor .hero .marco');
+document.addEventListener('dragstart', ev => {
+  const p = ev.target.closest?.('#gridIzq .poke'); if (p) ev.dataTransfer.setData('application/x-randomlab-poke', p.dataset.id);
+});
+document.addEventListener('dragover', ev => {
+  const m = imgEd(ev.target); if (!m || !ev.dataTransfer.types.some(t => t === 'application/x-randomlab-poke' || t === 'text/plain')) return;
+  ev.preventDefault(); document.querySelectorAll('.over').forEach(x => x.classList.remove('over')); m.classList.add('over');
+});
+document.addEventListener('drop', ev => {
+  const m = imgEd(ev.target); if (!m || !ed) return;
+  let id = +ev.dataTransfer.getData('application/x-randomlab-poke');
+  if (!id) { try { const r = JSON.parse(ev.dataTransfer.getData('text/plain')); id = getR(r)?.id; } catch {} }
+  const p = id && D.pokemon.find(x => x.id === id); if (!p) return;
+  ev.preventDefault(); document.querySelectorAll('.over').forEach(x => x.classList.remove('over'));
+  ed.poke = p; ed.hab = habLista(p.id)[0]?.[0]; pintarEditor(); pintarIzq(); aviso('Sustituido por ' + p.n);
+});
+
+// soltar un Pokémon en cualquier parte del Taller lo carga para editarlo (sobre la imagen, en cambio, sustituye la especie del que ya hay)
+const enTaller = el => el.closest?.('#editor') && !imgEd(el);
+const pokeArrastrado = dt => dt.types.includes('application/x-randomlab-poke') || dt.types.includes('text/plain');
+document.addEventListener('dragover', ev => {
+  if (!enTaller(ev.target) || !pokeArrastrado(ev.dataTransfer)) return;
+  ev.preventDefault(); document.querySelectorAll('.over').forEach(x => x.classList.remove('over')); $('editor').classList.add('over');
+});
+document.addEventListener('drop', ev => {
+  if (!enTaller(ev.target)) return;
+  const dex = +ev.dataTransfer.getData('application/x-randomlab-poke');
+  let p, m, o;
+  if (dex) p = D.pokemon.find(x => x.id === dex);
+  else { try { o = JSON.parse(ev.dataTransfer.getData('text/plain')); m = getR(o); p = m && D.pokemon.find(x => x.id === m.id); } catch {} }
+  if (!p) return;
+  ev.preventDefault(); document.querySelectorAll('.over').forEach(x => x.classList.remove('over'));
+  destino = null; elegir(p, m, m ? o : undefined);
+});
+
+// ---------- cabecera ----------
+function cambiarVista(v) { if (destino && v!=='dex') destino = null; vista = v; ['Dex','Equipo','Cajas'].forEach(n => $('b'+n).classList.toggle('on', vista===n.toLowerCase())); pintarIzq(); }
+$('bDex').onclick = () => cambiarVista('dex');
+$('bEquipo').onclick = () => cambiarVista('equipo');
+$('bCajas').onclick = () => cambiarVista('cajas');
+$('tAtaques').onclick = () => verPanel('ataques');
+$('tObjetos').onclick = () => verPanel('objetos');
+$('buscador').oninput = () => pintarIzq();
+$('fMoves').oninput = () => pintarMoves();
+$('fItems').oninput = () => pintarItems();
+$('bGuardar').onclick = () => { guardar(); aviso('Partida guardada'); };
+$('bLimpiar').onclick = async () => { // reinicia la partida actual (equipo y cajas) y la pantalla
+  if (!await Dialogo.confirmar(`¿Seguro que quieres borrar todo?
+Se quitarán todos los Pokémon del equipo y las cajas de "${P().n}".
+(Ctrl+Z lo revierte)`, {titulo:'Borrar todo', ok:'Borrar', peligro:true})) return;
+  S.partidas[S.act] = nuevaPartida(P().n); guardar(); cajaAct = 0; pintarIzq(); contadores();
+  ed = null; fTipo = fClase = 0; orden = 'n'; $('selOrden').value = 'n';
+  $('buscador').value = $('fMoves').value = $('fItems').value = '';
+  marcarFiltros(); verPanel('ataques'); pintarMoves(); pintarItems(); pintarEditor(); cambiarVista('dex');
+  document.querySelectorAll('.cuerpo').forEach(c => c.scrollTop = 0);
+  aviso('Partida reiniciada');
+};
+
+function pintarPartidas() {
+  $('selPartida').innerHTML = Object.entries(S.partidas).filter(([id,p]) => id===S.act || p.equipo.some(Boolean) || p.cajas.flat().some(Boolean) || p.muertos?.some(Boolean)).map(([id,p]) => `<option value="${id}" ${id===S.act?'selected':''}>${esc(p.n)}</option>`).join('');
+}
+function refrescarTodo() { ed = null; cajaAct = 0; verMuertos = false; pintarPartidas(); contadores(); pintarEditor(); pintarIzq(); }
+$('selPartida').onchange = ev => { S.act = ev.target.value; guardar(); refrescarTodo(); };
+$('bNueva').onclick = async () => {
+  const n = await Dialogo.pedir('Nombre de la nueva partida (por ejemplo, tu run):', `${perfil.nombre} · ${J.n} (${Object.keys(S.partidas).length + 1})`, {titulo:'Nueva partida', ok:'Crear'});
+  if (!n) return;
+  const id = 'p' + Date.now(); S.partidas[id] = nuevaPartida(n); S.act = id; guardar(); refrescarTodo();
+};
+$('bRenombrar').onclick = async () => {
+  const n = await Dialogo.pedir('Nuevo nombre de la partida:', P().n, {titulo:'Renombrar partida', ok:'Guardar'});
+  if (!n) return;
+  P().n = n; guardar(); pintarPartidas();
+};
+// ---------- capturas: apunta qué Pokémon capturaste y dónde ----------
+const PIN = "<svg class='pin' width='16' height='16' viewBox='0 0 8 8' shape-rendering='crispEdges' aria-hidden='true'><path fill='currentColor' d='M2 0h4v1h1v4H6v1H5v1H4v1H3V7H2V6H1V1h1z'/><path fill='#0b1450' d='M3 2h2v2H3z'/></svg>";
+// las capturas viejas por ruta pasan a la lista nueva, con el nombre de la ruta como lugar
+const capRun = () => { const p = P(); if (!p.capturas) p.capturas = Object.entries(p.rutas || {}).filter(([, r]) => r.e === 'c').map(([k, r]) => ({id:r.id, n:r.n, lugar:k.replace(/^\d+:/, '')})); return p.capturas; };
+const abrirRutas = () => { if (!S || !J) return; const f = document.createElement('div'); f.className = 'rutas-fondo'; f.id = 'rutasFondo'; document.body.appendChild(f); f.onmousedown = ev => { if (ev.target === f) cerrarRutas(); }; pintarRutas(); };
+const cerrarRutas = () => document.getElementById('rutasFondo')?.remove();
+function pintarRutas() {
+  const f = document.getElementById('rutasFondo'); if (!f) return;
+  const l = capRun();
+  f.innerHTML = `<div class="rutas"><header><h2>${PIN} Capturas</h2><button id="capNueva">＋ Añadir captura</button><button id="rutaX">Cerrar</button></header>
+    <div class="lista-r"><div class="prog"><span><b>${l.filter(x => x.id).length}</b> capturados</span></div>
+      <div class="filas">${l.map((x, i) => `<div class="ruta c" data-i="${i}">
+        <button data-a="poke" class="cap" title="Elegir el Pokémon capturado">${x.id ? `<img src="${pokeImg(x.id)}" alt="">${esc(x.n)}` : '＋ Pokémon'}</button>
+        <input class="lugar" value="${esc(x.lugar || '')}" placeholder="¿Dónde lo capturaste?" maxlength="80">
+        ${x.id ? '<button data-a="anadir" title="Añadirlo al equipo o a una caja">Añadir</button>' : ''}<button data-a="borrar" class="peligro" title="Borrar esta captura">Eliminar</button></div>`).join('') || '<p style="color:var(--mut)">Aún no has apuntado ninguna captura. Pulsa «Añadir captura».</p>'}</div></div></div>`;
+}
+// elegir un Pokémon: primero los de tu run, luego la Pokédex del juego
+const elegirPokemon = titulo => new Promise(res => {
+  const f = document.createElement('div'); f.className = 'picker-fondo';
+  f.innerHTML = `<div class="picker"><h3>${esc(titulo)}</h3><input id="pkBus" type="search" placeholder="Buscar Pokémon por nombre o número…" autocomplete="off"><div class="gr"></div><div class="btns" style="display:flex;justify-content:flex-end"><button id="pkNo">Cancelar</button></div></div>`;
+  document.body.appendChild(f);
+  const gr = f.querySelector('.gr'), inp = f.querySelector('#pkBus');
+  const fin = r => { document.removeEventListener('keydown', tecla, true); f.remove(); res(r); };
+  const tecla = ev => { if (ev.key === 'Escape') { ev.preventDefault(); ev.stopImmediatePropagation(); fin(null); } else if (ev.target !== inp) ev.stopImmediatePropagation(); };
+  document.addEventListener('keydown', tecla, true);
+  const celda = (id, n) => `<div class="p" data-id="${id}" data-n="${esc(n)}"><img src="${pokeImg(id)}" alt=""><div>${esc(n)}</div></div>`;
+  const pintar = () => {
+    const q = norm(inp.value.trim()), vistos = new Set();
+    const mios = [...P().equipo, ...P().cajas.flat(), ...muertos()].filter(m => m && !vistos.has(m.id) && vistos.add(m.id) && (!q || norm(m.mote || m.n).includes(q) || norm(m.n).includes(q)));
+    const dex = D.pokemon.filter(p => enJuego(p) && !vistos.has(p.id) && (!q || norm(p.n).includes(q) || String(p.e||p.id) === q)).slice(0, 80);
+    gr.innerHTML = (mios.length ? '<div class="sec">En tu run</div>' + mios.map(m => celda(m.id, m.n)).join('') : '') + '<div class="sec">Pokédex</div>' + dex.map(p => celda(p.id, p.n)).join('');
+  };
+  inp.oninput = pintar; pintar(); inp.focus();
+  gr.onclick = ev => { const c = ev.target.closest('.p'); if (c) fin({id:+c.dataset.id, n:c.dataset.n}); };
+  f.querySelector('#pkNo').onclick = () => fin(null); f.onmousedown = ev => { if (ev.target === f) fin(null); };
+});
+// añade la captura al equipo (si está lleno, sustituyendo a uno que se manda a la caja) o a una caja con huecos libres, rellenando en orden
+async function anadirCaptura(c) {
+  const p = D.pokemon.find(x => x.id === c.id); if (!p) return;
+  const nuevo = () => ({mote:'', id:p.id, n:p.n, nat:0, moves:[null,null,null,null], item:null, lvl:50, hab:habLista(p.id)[0]?.[0], caido:false});
+  const eq = P().equipo, cajas = P().cajas;
+  const primerLibre = b => { const i = cajas[b].indexOf(null); return i < 0 ? null : {l:'c', b, i}; };
+  const aCaja = b => { const h = primerLibre(b); if (!h) return false; setR(h, nuevo()); aviso(`${p.n} añadido a la caja ${b + 1}, hueco ${h.i + 1}`); return true; };
+  const d = await Dialogo.elegir('Añadir ' + p.n, '¿Dónde lo quieres añadir?', [{t:'Al equipo'}, {t:'A una caja'}]); if (d === null) return;
+  if (d === 0) {
+    const libre = eq.indexOf(null);
+    if (libre >= 0) { eq[libre] = nuevo(); aviso(`${p.n} añadido al equipo`); }
+    else {
+      const k = await Dialogo.elegir('Equipo completo', `¿A quién quieres sustituir por ${p.n}? El Pokémon sustituido irá a la primera caja con hueco libre.`, eq.map((m, i) => ({t: `${i + 1}. ${m.mote || m.n} · Nv ${m.lvl || 50}`}))); if (k === null) return;
+      let b = cajas.findIndex(c => c.includes(null)); if (b < 0) { cajas.push(nuevaCaja()); b = cajas.length - 1; }
+      const h = primerLibre(b), saliente = eq[k]; setR(h, saliente); eq[k] = nuevo();
+      aviso(`${p.n} entra al equipo y ${saliente.mote || saliente.n} va a la caja ${b + 1}, hueco ${h.i + 1}`);
+    }
+  } else {
+    const ops = cajas.map((c, b) => ({t: `Caja ${b + 1} · ${c.filter(x => !x).length} huecos libres`, off: !c.includes(null)}));
+    if (ops.every(o => o.off)) { cajas.push(nuevaCaja()); ops.push({t: `Caja ${cajas.length} (nueva)`}); }
+    const b = await Dialogo.elegir('Elegir caja', 'Se colocará en el primer hueco libre de la caja que elijas.', ops); if (b === null) return;
+    aCaja(b);
+  }
+  guardar(); pintarIzq(); contadores();
+}
+document.addEventListener('click', async ev => {
+  const f = document.getElementById('rutasFondo'); if (!f || !f.contains(ev.target)) return;
+  if (ev.target.closest('#rutaX')) return cerrarRutas();
+  const l = capRun();
+  if (ev.target.closest('#capNueva')) { l.push({id:0, n:'', lugar:''}); guardar(); pintarRutas(); const t = f.querySelectorAll('.ruta'); return t[t.length - 1]?.scrollIntoView(); }
+  const b = ev.target.closest('[data-a]'); if (!b) return;
+  const i = +b.closest('.ruta').dataset.i;
+  if (b.dataset.a === 'poke') { const p = await elegirPokemon('Pokémon capturado'); if (!p) return; l[i].id = p.id; l[i].n = p.n; }
+  else if (b.dataset.a === 'anadir') return anadirCaptura(l[i]);
+  else {
+    if (!await Dialogo.confirmar(`¿Seguro que quieres eliminar esta captura?`, {titulo:'Eliminar captura', ok:'Eliminar', peligro:true})) return;
+    l.splice(i, 1);
+  }
+  guardar(); pintarRutas();
+});
+document.addEventListener('change', ev => { const r = ev.target.closest?.('#rutasFondo .lugar'); if (r) { capRun()[+r.closest('.ruta').dataset.i].lugar = r.value.trim(); guardar(); } });
+document.addEventListener('keydown', ev => { if (ev.key === 'Escape') document.querySelector('#rutasFondo,#calcFondo,#medFondo')?.remove(); });
+// atajos: 1 / 2 / 3 cambian de vista, "/" enfoca el buscador
+document.addEventListener('keydown', ev => {
+  if (!S || $('app').hidden || ev.ctrlKey || ev.metaKey || ev.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(ev.target.tagName) || document.querySelector('.rutas-fondo,.dlg-fondo,.picker-fondo')) return;
+  if (ev.key === '1' || ev.key === '2' || ev.key === '3') cambiarVista(['dex','equipo','cajas'][ev.key - 1]);
+  else if (ev.key === '/') { ev.preventDefault(); cambiarVista('dex'); $('buscador').focus(); }
+});
+$('bRutas').onclick = abrirRutas;
+
+// ---------- calculadora de stats (EVs / IVs / naturaleza / nivel) ----------
+function abrirCalc() {
+  if (!D || document.getElementById('calcFondo')) return;
+  const base = ed ? ed.poke : D.pokemon[0], viejo = J.g <= 2, maxIV = viejo ? 15 : 31, maxEV = viejo ? 65535 : 252;   // gen. 1-2: DV y experiencia de stat
+  const st = {id: base.id, lvl: ed?.lvl || 50, nat: ed?.nat || 0, iv: Array(6).fill(maxIV), ev: Array(6).fill(0)};
+  const f = document.createElement('div'); f.className = 'rutas-fondo'; f.id = 'calcFondo';
+  f.innerHTML = `<div class="calc"><header><h2>🧮 Calculadora de stats</h2><button id="calcX">Cerrar</button></header>
+    <div class="gen"><label>Pokémon<input id="cBus" type="search" placeholder="Nombre o nº…" autocomplete="off"><select id="cPoke"></select></label>
+      <label>Nivel<input id="cLvl" type="number" min="1" max="100" style="width:64px"></label>
+      <label ${J.g < 3 ? 'hidden' : ''}>Naturaleza<select id="cNat">${NAT.map((n,i) => `<option value="${i}">${esc(n.txt)}</option>`).join('')}</select></label></div>
+    <table><thead><tr><th>Stat</th><th>Base</th><th>${viejo ? 'DV (0-15)' : 'IV (0-31)'}</th><th>${viejo ? 'Exp. de stat (0-65535)' : 'EV (0-252)'}</th><th style="text-align:right">Final</th></tr></thead><tbody id="cFilas"></tbody></table>
+    <div class="tot-ev" id="cTot"></div><div class="gen"><button id="cMax">${viejo ? 'DV 15' : 'IV 31'}</button><button id="cCero">${viejo ? 'DV 0' : 'IV 0'}</button><button id="cEv0">${viejo ? 'Quitar exp. de stat' : 'Quitar EVs'}</button></div></div>`;
+  document.body.appendChild(f);
+  const cerrar = () => f.remove(); $('calcX').onclick = cerrar; f.onmousedown = ev => { if (ev.target === f) cerrar(); };
+  const clamp = (v, m) => Math.max(0, Math.min(m, Math.floor(+v) || 0));
+  function calc() {
+    const b = D.stats[st.id]; if (!b) return;
+    const L = st.lvl, N = J.g < 3 ? NAT[0] : NAT[st.nat];
+    $('cFilas').innerHTML = b.map((x, i) => {
+      const j = J.g === 1 && i === 4 ? 3 : i; if (j !== i) x = b[3];   // gen. 1: Especial único
+      const k = viejo ? Math.floor(((x + st.iv[j]) * 2 + Math.floor(Math.ceil(Math.sqrt(st.ev[j])) / 4)) * L / 100) : Math.floor((2*x + st.iv[j] + Math.floor(st.ev[j]/4)) * L / 100);
+      const v = i === 0 ? (st.id === 292 ? 1 : k + L + 10) : Math.floor((k + 5) * (i === N.up ? 1.1 : i === N.down ? 0.9 : 1));
+      return `<tr><td>${STATS[i]}</td><td>${x}</td><td><input type="number" min="0" max="${maxIV}" data-iv="${j}" value="${st.iv[j]}"></td><td><input type="number" min="0" max="${maxEV}" step="${viejo ? 1 : 4}" data-ev="${j}" value="${st.ev[j]}" ${viejo ? 'style="width:90px"' : ''}></td><td class="res ${i===N.up?'up':i===N.down?'down':''}">${v}</td></tr>`;
+    }).join('');
+    const t = st.ev.reduce((a, b) => a + b, 0);
+    $('cTot').textContent = viejo ? '' : `EVs usados: ${t} / 510` + (t > 510 ? ' (te pasas del máximo)' : '');
+    $('cTot').className = 'tot-ev' + (t > 510 ? ' mal' : '');
+  }
+  const llenar = q => { q = norm(q.trim());
+    const l = D.pokemon.filter(p => !q || norm(p.n).includes(q) || String(p.e||p.id) === q);
+    $('cPoke').innerHTML = l.map(p => `<option value="${p.id}">#${p.id} ${esc(p.n)}</option>`).join('') || '<option value="">Sin resultados</option>';
+    if (l.length && !l.some(p => p.id === st.id)) { st.id = l[0].id; calc(); } else $('cPoke').value = st.id; };
+  $('cBus').oninput = e => llenar(e.target.value);
+  llenar(''); $('cLvl').value = st.lvl; $('cNat').value = st.nat;
+  $('cPoke').onchange = e => { if (e.target.value) { st.id = +e.target.value; calc(); } };
+  $('cLvl').oninput = e => { st.lvl = Math.max(1, clamp(e.target.value, 100)); calc(); };
+  $('cNat').onchange = e => { st.nat = +e.target.value; calc(); };
+  $('cFilas').onchange = e => { const t = e.target;
+    if (t.dataset.iv) st.iv[t.dataset.iv] = clamp(t.value, maxIV); else if (t.dataset.ev) st.ev[t.dataset.ev] = clamp(t.value, maxEV); calc(); };
+  $('cMax').onclick = () => { st.iv.fill(maxIV); calc(); }; $('cCero').onclick = () => { st.iv.fill(0); calc(); }; $('cEv0').onclick = () => { st.ev.fill(0); calc(); };
+  calc();
+}
+$('bCalc').onclick = abrirCalc;
+
+// ---------- medallas, Alto Mando y Campeón (genérico: sirve para cualquier juego) ----------
+const SPR_ENT = 'https://play.pokemonshowdown.com/sprites/trainers/';
+// líderes de gimnasio por región: [sprite, nombre, tipo]. La medalla se dibuja con el color de su tipo (no es el arte oficial).
+const LID = {
+  kanto: [['brock','Brock',6],['misty','Misty',11],['ltsurge','Teniente Surge',13],['erika','Erika',12],['koga','Koga',4],['sabrina','Sabrina',14],['blaine','Blaine',10],['giovanni','Giovanni',5]],
+  johto: [['falkner','Pegaso',3],['bugsy','Antón',7],['whitney','Blanca',1],['morty','Morti',8],['chuck','Aníbal',2],['jasmine','Yasmina',9],['pryce','Fredo',15],['clair','Débora',16]],
+  hoenn: [['roxanne','Petra',6],['brawly','Marcial',2],['wattson','Erico',13],['flannery','Candela',10],['norman','Norman',1],['winona','Alana',3],['tateandliza-gen3','Vito y Leti',14]],
+  sinnoh: [['roark','Roco',6],['gardenia','Gardenia',12],['maylene','Brega',2],['crasherwake','Mananti',11],['fantina','Fantina',8],['byron','Acerón',9],['candice','Inverna',15],['volkner','Lectro',13]],
+  kalos: [['viola','Violeta',7],['grant','Lino',6],['korrina','Korrina',2],['ramos','Amaro',12],['clemont','Lem',13],['valerie','Valerie',18],['olympia','Ástrid',14],['wulfric','Édel',15]],
+  paldea: [['katy','Araceli',7],['brassius','Brais',12],['iono','e-Nigma',13],['kofu','Fuco',11],['larry','Laureano',1],['ryme','Lima',8],['tulip','Tuli',14],['grusha','Grusha',15]],
+};
+const GRUPOS = (() => {
+  const g = (t, l) => [[t, l]], hoenn = x => g('Hoenn', [...LID.hoenn, x]);
+  const unova = (a, b) => g('Teselia', [['cilan','Millo / Zeo / Maíz',12],['lenora','Aloe',1],['burgh','Camus',7],['elesa','Camila',13],['clay','Yakón',5],['skyla','Gerania',3],['brycen','Junco',15],a]);
+  const galar = (a, b) => g('Galar', [['milo','Percy',12],['nessa','Cathy',11],['kabu','Naboru',10],a,['opal','Sally',18],b,['piers','Nerio',17],['raihan','Roy',16]]);
+  const m = {};
+  ['Rojo','Azul','Amarillo','Rojo Fuego','Verde Hoja',"Let's Go Pikachu","Let's Go Eevee"].forEach(n => m[n] = g('Kanto', LID.kanto));
+  ['Oro','Plata','Cristal','HeartGold','SoulSilver'].forEach(n => m[n] = [['Johto', LID.johto], ['Kanto', LID.kanto.map(l => l[0] === 'koga' ? ['janine','Sachiko',4] : l[0] === 'giovanni' ? ['blue','Azul',0] : l)]]);
+  ['Rubí','Zafiro','Rubí Omega','Zafiro Alfa'].forEach(n => m[n] = hoenn(['wallace','Plubio',11]));
+  m['Esmeralda'] = hoenn(['juan','Galano',11]);
+  ['Diamante','Perla','Platino','Diamante Brillante','Perla Reluciente'].forEach(n => m[n] = g('Sinnoh', LID.sinnoh));
+  m['Negro'] = unova(['drayden','Lirio',16]); m['Blanco'] = unova(['iris','Iris',16]);
+  const u2 = g('Teselia', [['cheren','Cheren',1],['roxie','Hiedra',4],['burgh','Camus',7],['elesa','Camila',13],['clay','Yakón',5],['skyla','Gerania',3],['drayden','Lirio',16],['marlon','Ciprián',11]]);
+  m['Negro 2'] = m['Blanco 2'] = u2;
+  m['X'] = m['Y'] = g('Kalos', LID.kalos);
+  ['Sol','Luna','Ultrasol','Ultraluna'].forEach(n => m[n] = g('Kahunas', [['hala','Kaudan',2],['olivia','Mayla',6],['nanu','Nanu',17],['hapu','Hela',5]]));
+  m['Espada'] = galar(['bea','Judith',2], ['gordie','Morris',6]); m['Escudo'] = galar(['allister','Alistair',8], ['melony','Mel',15]);
+  m['Escarlata'] = m['Púrpura'] = g('Paldea', LID.paldea);
+  return m;
+})();
+// Alto Mando y campeón por juego: e = [sprite, nombre, tipo] x4, c = [sprite, nombre]
+const ALTO = (() => {
+  const kanto = [['lorelei-gen3','Lorelei',15],['bruno','Bruno',2],['agatha-gen3','Agatha',8],['lance','Lance',16]];
+  const johto = [['will','Mento',14],['koga','Koga',4],['bruno','Bruno',2],['karen','Karen',17]];
+  const alola = [['hala','Kaudan',2],['olivia','Mayla',6],['acerola','Zarala',8],['kahili','Kahili',3]];
+  const hoenn = [['sidney','Sixto',17],['phoebe-gen3','Fátima',8],['glacia','Nívea',15],['drake-gen3','Dracón',16]];
+  const sinnoh = [['aaron','Alecrán',7],['bertha','Gaia',5],['flint','Fausto',10],['lucian','Delos',14]];
+  const unova = [['shauntal','Anís',8],['marshal','Lotto',2],['grimsley','Aza',17],['caitlin','Catleya',14]];
+  const kalos = [['malva','Malva',10],['siebold','Narciso',11],['wikstrom','Tileo',9],['drasna','Drácena',16]];
+  const paldea = [['rika','Cayena',5],['poppy','Pola',9],['larry','Laureano',3],['hassel','Hesperio',16]];
+  const m = {};
+  ['Rojo','Azul','Amarillo','Rojo Fuego','Verde Hoja'].forEach(n => m[n] = {e:kanto, c:['blue','Azul']});
+  ["Let's Go Pikachu","Let's Go Eevee"].forEach(n => m[n] = {e:kanto, c:['trace','Trace']});
+  ['Oro','Plata','Cristal','HeartGold','SoulSilver'].forEach(n => m[n] = {e:johto, c:['lance','Lance']});
+  ['Rubí','Zafiro','Rubí Omega','Zafiro Alfa'].forEach(n => m[n] = {e:hoenn, c:['steven','Máximo']});
+  m['Esmeralda'] = {e:hoenn, c:['wallace','Plubio']};
+  ['Diamante','Perla','Platino','Diamante Brillante','Perla Reluciente'].forEach(n => m[n] = {e:sinnoh, c:['cynthia','Cintia']});
+  m['Negro'] = m['Blanco'] = {e:unova, c:['alder','Mirto']}; m['Negro 2'] = m['Blanco 2'] = {e:unova, c:['iris','Iris']};
+  m['X'] = m['Y'] = {e:kalos, c:['diantha','Dianta']};
+  m['Sol'] = m['Luna'] = {e:alola, c:['kukui','Kukui']}; m['Ultrasol'] = m['Ultraluna'] = {e:[['molayne','Lario',9], ...alola.slice(1)], c:['hau','Tilo']};
+  m['Espada'] = m['Escudo'] = {e:[], c:['leon','Lionel']};
+  m['Escarlata'] = m['Púrpura'] = {e:paldea, c:['geeta','Ságita']};
+  return m;
+})();
+const lideresDe = n => (GRUPOS[n] || []).flatMap(([, l]) => l);
+const medRun = () => P().med ||= {m: [], e: [], c: false};
+const tipoDe = tp => TIPOS[tp] || ['Variado', '#9aa4c8'];
+const badgeSVG = c => `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1l6 3v6l-6 5-6-5V4z" fill="${c}" stroke="#0009" stroke-width="1"/><path d="M8 3.5l3.5 1.8v3.8L8 12 4.5 9.1V5.3z" fill="#ffffff44"/><circle cx="8" cy="8" r="2" fill="#fff9"/></svg>`;
+function pintarMed() {
+  const f = document.getElementById('medFondo'); if (!f) return; const x = medRun(), todos = lideresDe(J.n), al = ALTO[J.n] || {e: []};
+  x.e ||= [];
+  let k = 0;
+  const tarjeta = (clave, on, sp, nom, c, txt, badge) => `<button class="lid ${on ? 'on' : ''}" data-m="${clave}" style="--c:${c}" title="${esc(nom)} · ${esc(txt)}"><img class="sp" src="${SPR_ENT}${sp}.png" alt="" onerror="this.style.visibility='hidden'"><b>${esc(nom)}</b>${badge || ''}<small>${esc(txt)}</small></button>`;
+  const grupos = (GRUPOS[J.n] || []).map(([t, l]) => `${(GRUPOS[J.n].length > 1) ? `<h3>${t}</h3>` : ''}${l.map(([sp, nom, tp]) => { const i = k++;
+    return tarjeta(i, x.m[i], sp, nom, tipoDe(tp)[1], tipoDe(tp)[0], badgeSVG(tipoDe(tp)[1])); }).join('')}`).join('');
+  const liga = (al.e.length ? `<h3>Alto Mando</h3>${al.e.map(([sp, nom, tp], i) => tarjeta('e' + i, x.e[i], sp, nom, tipoDe(tp)[1], tipoDe(tp)[0])).join('')}` : '')
+    + (al.c ? `<h3>Campeón</h3>${tarjeta('c', x.c, al.c[0], al.c[1], '#ffd23f', 'Campeón')}` : '');
+  f.innerHTML = `<div class="calc ancha"><header><h2>🏅 Medallas · ${esc(P().n)}</h2><button id="medX">Cerrar</button></header>
+    <div class="med">${grupos || '<p style="grid-column:1/-1;color:var(--mut)">Esta región no tiene gimnasios clásicos (pruebas y kahunas en Alola).</p>'}${liga}</div>
+    <div class="tot-ev">${todos.length ? `${todos.filter((_, i) => x.m[i]).length} / ${todos.length} medallas · ` : ''}${al.e.length ? `${al.e.filter((_, i) => x.e[i]).length} / ${al.e.length} del Alto Mando · ` : ''}${x.c ? 'Campeón derrotado 🏆' : 'Campeón pendiente'}</div></div>`;
+}
+$('bMed').onclick = () => {
+  if (!S || document.getElementById('medFondo')) return;
+  const f = document.createElement('div'); f.className = 'rutas-fondo'; f.id = 'medFondo'; document.body.appendChild(f); pintarMed();
+  f.onmousedown = ev => { if (ev.target === f) f.remove(); };
+  f.onclick = ev => { const b = ev.target.closest('[data-m]'), x = medRun();
+    if (ev.target.id === 'medX') return f.remove(); if (!b) return;
+    const k = b.dataset.m; if (k === 'c') x.c = !x.c; else if (k[0] === 'e') { x.e ||= []; x.e[k.slice(1)] = !x.e[k.slice(1)]; } else x.m[k] = !x.m[k];
+    guardar(); pintarMed(); };
+};
+
+// ---------- diálogos con el estilo de la página (sustituyen a confirm y prompt) ----------
+const Dialogo = (() => {
+  const abrir = (titulo, cuerpo, ok, peligro, conCampo, valor) => new Promise(res => {
+    const f = document.createElement('div'); f.className = 'dlg-fondo';
+    f.innerHTML = `<div class="dlg" role="dialog" aria-modal="true"><h3>${esc(titulo)}</h3><p>${esc(cuerpo)}</p>${conCampo ? '<input id="dlgIn" maxlength="40" autocomplete="off">' : ''}<div class="btns"><button id="dlgNo">Cancelar</button><button id="dlgSi" class="${peligro ? 'peligro-ok' : 'primary'}">${esc(ok)}</button></div></div>`;
+    document.body.appendChild(f);
+    const inp = f.querySelector('#dlgIn'); if (inp) inp.value = valor || '';
+    const fin = r => { document.removeEventListener('keydown', tecla, true); f.remove(); res(r); };
+    const aceptar = () => fin(inp ? (inp.value.trim() || null) : true);
+    const tecla = ev => {
+      if (ev.key === 'Escape') { ev.preventDefault(); ev.stopImmediatePropagation(); fin(inp ? null : false); }
+      else if (ev.key === 'Enter' && !(peligro && document.activeElement === f.querySelector('#dlgNo'))) { ev.preventDefault(); ev.stopImmediatePropagation(); aceptar(); }
+      else ev.stopImmediatePropagation();   // que no se cuelen atajos de la página (Ctrl+Z, flechas…)
+    };
+    document.addEventListener('keydown', tecla, true);
+    f.querySelector('#dlgSi').onclick = aceptar; f.querySelector('#dlgNo').onclick = () => fin(inp ? null : false);
+    f.onmousedown = ev => { if (ev.target === f) fin(inp ? null : false); };
+    (inp || f.querySelector(peligro ? '#dlgNo' : '#dlgSi')).focus(); if (inp) inp.select();
+  });
+  const elegirOp = (titulo, cuerpo, ops) => new Promise(res => {
+    const f = document.createElement('div'); f.className = 'dlg-fondo';
+    f.innerHTML = `<div class="dlg" role="dialog" aria-modal="true"><h3>${esc(titulo)}</h3><p>${esc(cuerpo)}</p><div class="ops">${ops.map((o, i) => `<button data-i="${i}" ${o.off ? 'disabled' : ''}>${esc(o.t)}</button>`).join('')}</div><div class="btns"><button id="dlgNo">Cancelar</button></div></div>`;
+    document.body.appendChild(f);
+    const fin = r => { document.removeEventListener('keydown', tecla, true); f.remove(); res(r); };
+    const tecla = ev => { if (ev.key === 'Escape') { ev.preventDefault(); ev.stopImmediatePropagation(); fin(null); } else if (ev.key !== 'Tab' && ev.key !== 'Enter') ev.stopImmediatePropagation(); };
+    document.addEventListener('keydown', tecla, true);
+    f.onclick = ev => { const b = ev.target.closest('[data-i]'); if (b) fin(+b.dataset.i); else if (ev.target.id === 'dlgNo') fin(null); };
+    f.onmousedown = ev => { if (ev.target === f) fin(null); };
+    f.querySelector('[data-i]:not(:disabled)')?.focus();
+  });
+  return {
+    elegir: elegirOp,
+    confirmar: (msg, {titulo = 'Confirmar', ok = 'Aceptar', peligro = false} = {}) => abrir(titulo, msg, ok, peligro, false),
+    pedir: (msg, valor, {titulo = 'Nombre', ok = 'Aceptar'} = {}) => abrir(titulo, msg, ok, false, true, valor),   // devuelve el texto o null
+  };
+})();
+
+// ---------- deshacer (Ctrl+Z) ----------
+document.addEventListener('keydown', ev => {
+  if (!(ev.ctrlKey || ev.metaKey) || ev.key.toLowerCase() !== 'z' || ev.shiftKey || !S || $('app').hidden) return;
+  if (/^(INPUT|TEXTAREA|SELECT)$/.test(ev.target.tagName)) return;
+  ev.preventDefault();
+  if (!deshacer.length) return aviso('Nada que deshacer');
+  ultimo = deshacer.pop(); S = JSON.parse(ultimo); localStorage.setItem('pk_partidas_v2', ultimo);
+  const c = cajaAct; refrescarTodo(); cajaAct = Math.min(c, P().cajas.length - 1); pintarIzq(); aviso('Deshecho');
+});
+
+// ---------- fondo animado: murciélagos y fuegos fatuos ----------
+(() => {
+  const bat = (alas) => `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 23 15' shape-rendering='crispEdges'><g fill='%23120a22'><rect x='10' y='5' width='3' height='6'/><rect x='10' y='3' width='1' height='2'/><rect x='12' y='3' width='1' height='2'/>${alas ? "<rect x='3' y='3' width='7' height='3'/><rect x='0' y='1' width='4' height='3'/><rect x='13' y='3' width='7' height='3'/><rect x='19' y='1' width='4' height='3'/><rect x='5' y='6' width='5' height='2'/><rect x='13' y='6' width='5' height='2'/>" : "<rect x='3' y='8' width='7' height='3'/><rect x='0' y='10' width='4' height='3'/><rect x='13' y='8' width='7' height='3'/><rect x='19' y='10' width='4' height='3'/><rect x='5' y='6' width='5' height='2'/><rect x='13' y='6' width='5' height='2'/>"}</g><g fill='%23ff4d6a'><rect x='10' y='5' width='1' height='1'/><rect x='12' y='5' width='1' height='1'/></g></svg>")`;
+  const m = $('murcis'), f = $('fuegos');
+  for (let i = 0; i < 5; i++) { const d = document.createElement('div'); d.className = 'murci'; d.style.cssText = `top:${8+i*11}%;--d:${13+i*3.5}s;--a:${bat(1)};--b:${bat(0)};animation-delay:-${i*4.3}s,0s;`; m.appendChild(d); }
+  for (let i = 0; i < 16; i++) { const d = document.createElement('div'); d.className = 'fuego'; d.style.cssText = `left:${(i*6.4+Math.random()*4)%100}%;--d:${10+Math.random()*9}s;--t:${5+Math.random()*7}px;animation-delay:-${Math.random()*14}s;`; f.appendChild(d); }
+})();
+
+// ---------- arranque ----------
+$('noche').hidden = false; document.body.classList.add('noche');
+Musica.estado();
+$('ghPk').src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${1 + Math.floor(Math.random()*1025)}.png`; // Pokémon al azar en cada carga
+pintarInicio();
+</script>
+</body>
+</html>

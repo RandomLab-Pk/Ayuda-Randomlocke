@@ -1,0 +1,7 @@
+cartuchos/
+musica/
+intros/
+*.json
+Thumbs.db
+.DS_Store
+CLAUDE.md
