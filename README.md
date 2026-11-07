@@ -45,4 +45,4 @@ El código se publica bajo licencia [MIT](LICENSE). La licencia **no** cubre los
 
 ---
 
-Hecho por **[RandomLab-Pk](https://github.com/RandomLab-Pk)**.
+Hecho por **Claude Code**.
