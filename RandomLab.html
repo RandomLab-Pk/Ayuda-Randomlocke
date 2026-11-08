@@ -258,6 +258,25 @@
   .med .lid b { font-size:13px; } .med .lid small { color:var(--mut); font-size:11px; }
   .med .lid.on { border-color:var(--c); box-shadow:0 0 12px -2px var(--c), inset 0 0 14px -6px var(--c); }
   .med .lid.on img.sp, .med .lid.on svg { filter:none; }
+  .eficacia { display:flex; flex-direction:column; gap:6px; background:#0b145055; border:2px solid #3550c8; border-radius:9px; padding:8px; margin-top:4px; }
+  .ef-fila { display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:12px; }
+  .ef-fila .ef-etq { min-width:108px; color:var(--mut); font-weight:700; }
+  .ef-badge { display:inline-flex; align-items:center; gap:4px; font-size:11px; padding:1px 7px; border-radius:99px; background:var(--c,#555); color:#fff; text-shadow:1px 1px 0 #0008; border:1px solid #fff7; }
+  .ef-badge b { background:#0007; padding:0 4px; border-radius:99px; font-size:10px; color:var(--am); }
+  .combo { grid-column:1 / -1; position:relative; display:flex; }
+  .combo input { width:100%; padding-right:28px; }
+  .combo .combo-btn { position:absolute; right:2px; top:2px; bottom:2px; border:none; background:transparent; padding:0 8px; color:var(--mut); cursor:pointer; }
+  .combo .combo-btn:hover { color:var(--am); transform:none; }
+  .combo-lista { position:absolute; left:0; right:0; top:calc(100% + 4px); max-height:210px; overflow-y:auto; background:var(--az4); border:2px solid var(--am); border-radius:9px; z-index:40; box-shadow:0 8px 20px #000c; display:flex; flex-direction:column; }
+  .combo-grupo { padding:4px 8px 2px; font-size:11px; color:var(--am); text-transform:uppercase; background:#060b30; font-weight:700; position:sticky; top:0; }
+  .combo-op { padding:5px 10px; cursor:pointer; font-size:13px; border-bottom:1px solid #ffffff12; }
+  .combo-op:hover, .combo-op.act { background:var(--az2); color:var(--am); }
+  .notas-box { display:flex; flex-direction:column; gap:10px; }
+  .notas-area { width:100%; min-height:240px; resize:vertical; background:#0a1556; border:2px solid #5a76e6; border-radius:10px; padding:10px 12px; color:#fff; font:inherit; line-height:1.45; }
+  .notas-area:focus { outline:none; border-color:var(--am); }
+  .notas-rapidas { display:flex; flex-direction:column; gap:6px; max-height:200px; overflow-y:auto; }
+  .nota-item { display:flex; align-items:center; gap:8px; background:var(--az4); border:2px solid #3550c8; border-radius:8px; padding:6px 10px; }
+  .nota-item span { flex:1; white-space:pre-wrap; word-break:break-word; }
   .aviso-copia { text-align:center; font-size:13px; color:var(--mut); } .aviso-copia.mal { color:#ffb347; }
   .calc .tot-ev { font-size:12px; color:var(--mut); } .calc .tot-ev.mal { color:#ee4d52; }
   .rutas-fondo { position:fixed; inset:0; z-index:9000; display:grid; place-items:center; background:#000b; animation:dlgIn .15s ease-out; }
@@ -427,6 +446,7 @@
     <button id="bRutas" class="pill" title="Apunta qué Pokémon has capturado y dónde"><svg class='pin' width='16' height='16' viewBox='0 0 8 8' shape-rendering='crispEdges' aria-hidden='true'><path fill='currentColor' d='M2 0h4v1h1v4H6v1H5v1H4v1H3V7H2V6H1V1h1z'/><path fill='#0b1450' d='M3 2h2v2H3z'/></svg> Capturas</button>
     <button id="bCalc" class="pill" title="Calculadora de stats: EVs, IVs y naturaleza">🧮 Calculadora</button>
     <button id="bMed" class="pill" title="Medallas, Alto Mando y Campeón de esta run">🏅 Medallas</button>
+    <button id="bNotas" class="pill" title="Apuntes y notas de esta run">📝 Notas</button>
     <span class="espacio"></span>
     <div class="grupo">
       <select id="selPartida" title="Partida (una por run)"></select>
@@ -980,6 +1000,49 @@ function prepararJuego() {
 const itemsJuego = () => J.g < 2 ? [] : D.items.filter(i => i.g <= J.g && !(SOLO_J[i.k] && !SOLO_J[i.k].includes(J.n)) && !(SOLO_J[i.s] && !SOLO_J[i.s].includes(J.n)));
 const tiposJuego = () => Object.entries(TIPOS).filter(([t]) => !(+t === 18 && J.g < 6) && !((+t === 9 || +t === 17) && J.g < 2));
 function tiposDe(id) { const p = (D.tipoPast[id] || []).find(([g]) => g >= J.g); return (p ? p[1] : D.tipos[id]) || []; }
+const EF_BASE = {
+  1:{6:.5,8:0,9:.5}, 2:{1:2,3:.5,4:.5,6:2,7:.5,8:0,9:2,14:.5,15:2,17:2,18:.5},
+  3:{2:2,6:.5,7:2,9:.5,12:2,13:.5}, 4:{4:.5,5:.5,6:.5,8:.5,9:0,12:2,18:2},
+  5:{3:0,4:2,6:2,7:.5,9:2,10:2,12:.5,13:2}, 6:{2:.5,3:2,5:.5,7:2,9:.5,10:2,15:2},
+  7:{2:.5,3:.5,4:.5,8:.5,9:.5,10:.5,12:2,14:2,17:2,18:.5}, 8:{1:0,8:2,14:2,17:.5},
+  9:{6:2,9:.5,10:.5,11:.5,13:.5,15:2,18:2}, 10:{6:.5,7:2,9:2,10:.5,11:.5,12:2,15:2,16:.5},
+  11:{5:2,6:2,10:2,11:.5,12:.5,16:.5}, 12:{3:.5,4:.5,5:2,6:2,7:.5,9:.5,10:.5,11:2,12:.5,16:.5},
+  13:{3:2,5:0,11:2,12:.5,13:.5,16:.5}, 14:{2:2,4:2,9:.5,14:.5,17:0},
+  15:{3:2,5:2,9:.5,10:.5,11:.5,12:2,15:.5,16:2}, 16:{9:.5,16:2,18:0},
+  17:{2:.5,8:2,14:2,17:.5,18:.5}, 18:{2:2,4:.5,9:.5,10:.5,16:2,17:2}
+};
+function multTipo(atq, def) {
+  if (J.g === 1) {
+    if (atq === 8 && def === 14) return 0;
+    if ((atq === 7 && def === 4) || (atq === 4 && def === 7)) return 2;
+    if (atq === 15 && def === 10) return 1;
+  }
+  if (J.g < 6 && def === 9 && (atq === 8 || atq === 17)) return 1;
+  return EF_BASE[atq]?.[def] ?? 1;
+}
+function eficaciaHTML(id, itemId) {
+  const ef = efecto(id, itemId);
+  const tDef = (ef && ef.forma && ef.tipos?.length) ? ef.tipos : tiposDe(id);
+  if (!tDef.length) return '';
+  const activos = tiposJuego().map(([t]) => +t);
+  const deb = [], res = [], inm = [], fuerte = [];
+  for (const t of activos) {
+    const m = tDef.reduce((acc, d) => acc * multTipo(t, d), 1);
+    if (m === 0) inm.push([t, '0']);
+    else if (m > 1) deb.push([t, m === 4 ? '×4' : '×2', m]);
+    else if (m < 1) res.push([t, m === 0.25 ? '×¼' : '×½', m]);
+    if (tDef.some(atq => multTipo(atq, t) > 1)) fuerte.push([t, '×2']);
+  }
+  deb.sort((a, b) => b[2] - a[2]); res.sort((a, b) => a[2] - b[2]);
+  const pintar = arr => arr.length ? arr.map(([t, txt]) => `<span class="ef-badge" style="--c:${TIPOS[t][1]}">${TIPOS[t][0]} <b>${txt}</b></span>`).join('') : '<small style="color:var(--mut)">Ninguna</small>';
+  return `<h3 style="margin-top:8px">Debilidades y fortalezas</h3>
+    <div class="eficacia">
+      <div class="ef-fila"><span class="ef-etq">⚠ Débil a:</span>${pintar(deb)}</div>
+      <div class="ef-fila"><span class="ef-etq">🛡 Resiste:</span>${pintar(res)}</div>
+      ${inm.length ? `<div class="ef-fila"><span class="ef-etq">🚫 Inmune a:</span>${pintar(inm)}</div>` : ''}
+      <div class="ef-fila"><span class="ef-etq">⚔ Fuerte contra:</span>${pintar(fuerte)}</div>
+    </div>`;
+}
 function habLista(id) {   // [[habilidad, oculta, hueco]] según la generación del juego
   if (J.g < 3) return [];
   const m = new Map((D.hab[id] || []).map(x => [x[2], x]));
@@ -1063,7 +1126,7 @@ function elegir(p, m, origen) {
          : {poke:p, nat:0, moves:[null,null,null,null], item:null, lvl:50, hab:habLista(p.id)[0]?.[0], caido:false, origen:null};
   pintarEditor(); pintarIzq();
 }
-const snapshot = () => ({mote:ed.mote||'', id:ed.poke.id, n:ed.poke.n, nat:ed.nat, moves:[...ed.moves], item:ed.item, lvl:ed.lvl, hab:ed.hab, caido:!!ed.caido});
+const snapshot = () => ({mote:ed.mote||'', id:ed.poke.id, n:ed.poke.n, nat:ed.nat, moves:[...ed.moves], item:ed.item, lvl:ed.lvl, hab:ed.hab, habTxt:ed.habTxt||'', caido:!!ed.caido});
 const cerrar = () => { ed = null; pintarEditor(); pintarIzq(); };
 function verPanel(p) {
   panelDer = p;
@@ -1082,7 +1145,7 @@ function megaHTML() {
   if (!ef || !ef.forma) return '';
   return `<div class="megaimg"><div class="marco" style="--tc:${ef.tipos && ef.tipos[0] ? TIPOS[ef.tipos[0]][1] : '#8a7be0'}"><img src="${pokeImg(ef.forma)}" onerror="this.style.display='none'" alt=""></div><b>${esc(ef.nombre)}</b></div>`;
 }
-function stats2() { // stats originales + stats modificadas por el objeto
+function stats2() { // stats originales + stats modificadas por el objeto + debilidades y fortalezas
   const id = ed.poke.id, base = D.stats[id]; if (!base) return '';
   const ef = efecto(id, ed.item);
   let h = `<h3>Stats originales</h3>${tabla(base, ed.nat)}`;
@@ -1090,7 +1153,51 @@ function stats2() { // stats originales + stats modificadas por el objeto
     h += `<h3 style="margin-top:6px">${ef.eff ? 'Stats con el objeto' : ef.texto ? 'Efecto del objeto' : 'Objeto sin efecto'}</h3>${modHTML(ef)}`;
     if (ef.eff) h += tabla(ef.eff, ed.nat, base);
   }
+  h += eficaciaHTML(id, ed.item);
   return h;
+}
+function crearCombo(idInput, idLista, valorInicial, grupos, alElegir) {
+  const wrap = $(idInput)?.closest('.combo'); if (!wrap) return;
+  const inp = $(idInput), list = $(idLista), btn = wrap.querySelector('.combo-btn');
+  inp.value = valorInicial;
+  const todas = grupos.flatMap(g => g.ops.map(o => ({...o, g: g.titulo})));
+  const render = (filtro = '') => {
+    const q = norm(filtro.trim());
+    let html = '';
+    for (const g of grupos) {
+      const ops = g.ops.filter(o => !q || norm(o.txt).includes(q));
+      if (!ops.length) continue;
+      if (g.titulo) html += `<div class="combo-grupo">${esc(g.titulo)}</div>`;
+      html += ops.map(o => `<div class="combo-op ${o.txt === inp.value ? 'act' : ''}" data-v="${esc(o.v)}" data-txt="${esc(o.txt)}">${esc(o.txt)}</div>`).join('');
+    }
+    list.innerHTML = html || `<div class="combo-op" style="color:var(--mut);cursor:default">Sin coincidencias (se guardará "${esc(filtro)}")</div>`;
+  };
+  const abrir = (filtrar) => { render(filtrar ? inp.value : ''); list.hidden = false; list.querySelector('.act')?.scrollIntoView({block:'nearest'}); };
+  const cerrarLista = () => { list.hidden = true; };
+  inp.onfocus = () => { inp.select(); abrir(false); };
+  inp.oninput = () => {
+    abrir(true);
+    const ex = todas.find(o => norm(o.txt) === norm(inp.value.trim()) || norm(o.corto || '') === norm(inp.value.trim()));
+    if (ex) alElegir(ex.v, ex.txt, false);
+    else alElegir(inp.value.trim(), inp.value.trim(), true);
+  };
+  btn.onclick = ev => { ev.stopPropagation(); if (list.hidden) { inp.focus(); abrir(false); } else cerrarLista(); };
+  list.onmousedown = ev => {
+    const op = ev.target.closest('.combo-op[data-v]'); if (!op) return;
+    ev.preventDefault(); inp.value = op.dataset.txt; alElegir(op.dataset.v, op.dataset.txt, false); cerrarLista();
+  };
+  inp.onkeydown = ev => {
+    const ops = [...list.querySelectorAll('.combo-op[data-v]')];
+    if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+      ev.preventDefault(); if (list.hidden) abrir(false);
+      if (!ops.length) return;
+      const idx = ops.findIndex(x => x.classList.contains('act'));
+      const sig = ops[(idx + (ev.key === 'ArrowDown' ? 1 : ops.length - 1)) % ops.length];
+      ops.forEach(x => x.classList.remove('act')); sig.classList.add('act'); sig.scrollIntoView({block:'nearest'});
+      inp.value = sig.dataset.txt; alElegir(sig.dataset.v, sig.dataset.txt, false);
+    } else if (ev.key === 'Enter' || ev.key === 'Escape') { cerrarLista(); inp.blur(); }
+  };
+  inp.onblur = () => setTimeout(cerrarLista, 150);
 }
 function pintarEditor() {
   const e = $('editor');
@@ -1112,8 +1219,8 @@ function pintarEditor() {
         <h1>${esc(ed.poke.n)} <small>#${ed.poke.e||ed.poke.id}</small></h1>
         <div>${tiposHTML(ed.poke.id)}</div>
         <div class="campos"><input id="inMote" maxlength="12" placeholder="Sin mote" value="${esc(ed.mote||'')}" title="Mote del Pokémon"><span class="etq">← Mote</span><input id="inLvl" type="number" min="1" max="100" value="${ed.lvl}" title="Nivel"><span class="etq">← Nivel</span>
-          ${J.g >= 3 ? `<select id="selHab" title="Habilidad">${opcionesHab()}</select>
-          <select id="selNat" title="Naturaleza">${NAT.map((n,i)=>`<option value="${i}" ${i===ed.nat?'selected':''}>${n.txt}</option>`).join('')}</select>` : ''}</div>
+          ${J.g >= 3 ? `<div class="combo" title="Escribe o usa la barra para elegir habilidad"><input id="inHab" placeholder="Escribe o elige habilidad…" autocomplete="off"><button type="button" class="combo-btn" tabindex="-1">▼</button><div class="combo-lista" id="listaHab" hidden></div></div>
+          <div class="combo" title="Escribe o usa la barra para elegir naturaleza"><input id="inNat" placeholder="Escribe o elige naturaleza…" autocomplete="off"><button type="button" class="combo-btn" tabindex="-1">▼</button><div class="combo-lista" id="listaNat" hidden></div></div>` : ''}</div>
       </div>
     </div>
     <div class="edcuerpo">
@@ -1128,7 +1235,23 @@ function pintarEditor() {
       : destino ? `<button class="primary" id="bADestino">Añadir a ${etiquetaDestino(destino)}</button><span class="sp"></span><button id="bCancelar">Cancelar</button>`
       : `<button class="primary" id="bAEquipo" ${huecoEquipo()?'':'disabled'}>Añadir al equipo</button><button id="bACaja">Añadir a caja</button><span class="sp"></span><button id="bCancelar">Cancelar</button>`}</div>`;
 
-  if ($('selNat')) { $('selNat').onchange = ev => { ed.nat = +ev.target.value; $('edStats').innerHTML = stats2(); }; $('selHab').onchange = ev => ed.hab = +ev.target.value; }
+  if ($('inNat')) {
+    const propias = habLista(ed.poke.id), ids = new Set(propias.map(h => h[0]));
+    const gPropias = propias.map(([a, h]) => ({v: a, txt: D.abN[a] + (h ? ' (oculta)' : ''), corto: D.abN[a]}));
+    const gResto = Object.entries(D.abN).filter(([a]) => !ids.has(+a) && D.abG[a] <= J.g).sort((a, b) => a[1].localeCompare(b[1], 'es')).map(([a, n]) => ({v: +a, txt: n, corto: n}));
+    const habActual = ed.habTxt || (D.abN[ed.hab] ? (gPropias.find(x => x.v === ed.hab)?.txt || D.abN[ed.hab]) : '');
+    crearCombo('inHab', 'listaHab', habActual, [
+      {titulo: `Habilidades de ${ed.poke.n}`, ops: gPropias},
+      {titulo: 'Cualquier otra habilidad (randomlocke)', ops: gResto}
+    ], (v, txt, libre) => {
+      if (libre) { ed.habTxt = txt; } else { ed.hab = +v; delete ed.habTxt; }
+    });
+    crearCombo('inNat', 'listaNat', NAT[ed.nat]?.txt || NAT[0].txt, [
+      {titulo: 'Naturalezas', ops: NAT.map((n, i) => ({v: i, txt: n.txt, corto: n.n}))}
+    ], (v, txt, libre) => {
+      if (!libre) { ed.nat = +v; $('edStats').innerHTML = stats2(); }
+    });
+  }
   $('inMote').oninput = ev => { ed.mote = ev.target.value.trim(); };
   $('inLvl').oninput = ev => { ed.lvl = Math.max(1, Math.min(100, +ev.target.value || 1)); };
   e.querySelectorAll('[data-m]').forEach(s => s.onclick = () => {
@@ -1174,7 +1297,7 @@ function carta(m, i) {
   const ataques = m.moves.map(id => { const x = id && move(id); return x ? `<span class="chip" style="--c:${TIPOS[x.t][1]}">${esc(x.n)}</span>` : '<span class="chip vacio">—</span>'; }).join('');
   return `<div class="carta ${m.caido?'caido':''} ${esSel('e',0,i)?'sel':''}" draggable="true" ${refAttr('e',0,i)}><img src="${pokeImg(m.id)}" alt="">
     <div class="info"><div class="tit">${esc(m.mote || m.n)} <small style="color:var(--mut)">${m.mote ? esc(m.n) + ' · ' : ''}Nv ${m.lvl||50}</small> ${tiposHTML(m.id)}</div>
-    <div class="sub">${J.g >= 3 ? NAT[m.nat].txt + (h && D.abN[h] ? ' · ' + esc(D.abN[h]) : '') : '&nbsp;'}</div>
+    <div class="sub">${J.g >= 3 ? NAT[m.nat].txt + ((m.habTxt || (h && D.abN[h])) ? ' · ' + esc(m.habTxt || D.abN[h]) : '') : '&nbsp;'}</div>
     <div class="chips">${ataques}</div>
     <div class="objeto">${it ? `<img src="${SPR}items/${it.s}.png" onerror="this.style.display='none'">${esc(it.n)}${ef && ef.nombre ? ` → <b style="color:var(--am)">${esc(ef.nombre)}</b>` : ''}` : 'Sin objeto'}</div>
     ${statsCarta(m.id, m.nat)}</div></div>`;
@@ -1505,7 +1628,7 @@ document.addEventListener('click', async ev => {
   guardar(); pintarRutas();
 });
 document.addEventListener('change', ev => { const r = ev.target.closest?.('#rutasFondo .lugar'); if (r) { capRun()[+r.closest('.ruta').dataset.i].lugar = r.value.trim(); guardar(); } });
-document.addEventListener('keydown', ev => { if (ev.key === 'Escape') document.querySelector('#rutasFondo,#calcFondo,#medFondo')?.remove(); });
+document.addEventListener('keydown', ev => { if (ev.key === 'Escape') document.querySelector('#rutasFondo,#calcFondo,#medFondo,#notasFondo')?.remove(); });
 // atajos: 1 / 2 / 3 cambian de vista, "/" enfoca el buscador
 document.addEventListener('keydown', ev => {
   if (!S || $('app').hidden || ev.ctrlKey || ev.metaKey || ev.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(ev.target.tagName) || document.querySelector('.rutas-fondo,.dlg-fondo,.picker-fondo')) return;
@@ -1637,6 +1760,41 @@ $('bMed').onclick = () => {
     if (ev.target.id === 'medX') return f.remove(); if (!b) return;
     const k = b.dataset.m; if (k === 'c') x.c = !x.c; else if (k[0] === 'e') { x.e ||= []; x.e[k.slice(1)] = !x.e[k.slice(1)]; } else x.m[k] = !x.m[k];
     guardar(); pintarMed(); };
+};
+
+// ---------- notas y apuntes de la run ----------
+const notasRun = () => {
+  const p = P();
+  if (!p.notas) p.notas = {texto: '', lista: []};
+  return p.notas;
+};
+function pintarNotas() {
+  const f = document.getElementById('notasFondo'); if (!f) return;
+  const n = notasRun();
+  f.innerHTML = `<div class="calc ancha"><header><h2>📝 Notas · ${esc(P().n)}</h2><button id="notasX">Cerrar</button></header>
+    <div class="notas-box">
+      <h3>Apuntes generales de la run</h3>
+      <textarea id="notasTxt" class="notas-area" placeholder="Escribe aquí tus apuntes de la run (pistas de tipos de gimnasios, objetos pendientes, entrenadores, reglas del locke…)">${esc(n.texto)}</textarea>
+      <h3>Notas rápidas</h3>
+      <div style="display:flex;gap:6px"><input id="notaRapidaIn" style="flex:1" placeholder="Añadir nota rápida (ej. Ruta 4: MT Rayo Hielo)…" maxlength="140"><button class="primary" id="bAddNota">＋ Añadir</button></div>
+      <div class="notas-rapidas">${n.lista.map((txt, i) => `<div class="nota-item"><span>• ${esc(txt)}</span><button class="peligro" data-del-nota="${i}" title="Borrar nota">🗑</button></div>`).join('') || '<small style="color:var(--mut)">No hay notas rápidas todavía.</small>'}</div>
+    </div></div>`;
+  const area = $('notasTxt'), inp = $('notaRapidaIn');
+  area.oninput = () => { n.texto = area.value; guardar(); };
+  const agregar = () => { const v = inp.value.trim(); if (!v) return; n.lista.unshift(v); inp.value = ''; guardar(); pintarNotas(); $('notaRapidaIn')?.focus(); };
+  $('bAddNota').onclick = agregar;
+  inp.onkeydown = ev => { if (ev.key === 'Enter') { ev.preventDefault(); agregar(); } };
+}
+$('bNotas').onclick = () => {
+  if (!S || document.getElementById('notasFondo')) return;
+  const f = document.createElement('div'); f.className = 'rutas-fondo'; f.id = 'notasFondo'; document.body.appendChild(f);
+  pintarNotas(); $('notasTxt')?.focus();
+  f.onmousedown = ev => { if (ev.target === f) f.remove(); };
+  f.onclick = ev => {
+    if (ev.target.id === 'notasX') return f.remove();
+    const b = ev.target.closest('[data-del-nota]');
+    if (b) { notasRun().lista.splice(+b.dataset.delNota, 1); guardar(); pintarNotas(); }
+  };
 };
 
 // ---------- diálogos con el estilo de la página (sustituyen a confirm y prompt) ----------
